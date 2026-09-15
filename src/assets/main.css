@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+@theme {
+    --font-sans: 'Poppins', sans-serif;
+
+    --color-charcoal: #374151;
+    --color-charcoalDark: #1f2937;
+    --color-mustard: #eab308;
+    --color-mustardHover: #ca8a04;
+}
