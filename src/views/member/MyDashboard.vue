@@ -6,6 +6,11 @@ import {
     ArrowTopRightOnSquareIcon,
     ClockIcon,
 } from '@heroicons/vue/24/outline'
+
+import Button from '@/components/common/Button.vue'
+import Card from '@/components/common/Card.vue'
+import AccentCard from '@/components/common/AccentCard.vue'
+import Alert from '@/components/common/Alert.vue'
 </script>
 
 <template>
@@ -17,59 +22,70 @@ import {
 
         <!-- Statistik Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm border-t-4 border-t-mustard">
+            <AccentCard>
                 <div class="flex justify-between items-start mb-2">
                     <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Buku Dipinjam</p>
                     <BookOpenIcon class="w-5 h-5 text-charcoal" />
                 </div>
                 <h3 class="text-3xl font-bold text-charcoalDark">2</h3>
                 <p class="text-xs text-gray-500 mt-3">Sedang aktif dipinjam</p>
-            </div>
+            </AccentCard>
 
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm border-t-4 border-t-mustard">
+            <AccentCard>
                 <div class="flex justify-between items-start mb-2">
                     <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Total Denda</p>
                     <BanknotesIcon class="w-5 h-5 text-charcoal" />
                 </div>
                 <h3 class="text-3xl font-bold text-charcoalDark">Rp 15.000</h3>
                 <p class="text-xs text-gray-500 mt-3">Menunggu pembayaran</p>
-            </div>
+            </AccentCard>
 
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm border-t-4 border-t-mustard">
+            <AccentCard>
                 <div class="flex justify-between items-start mb-2">
                     <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Total Bookmark</p>
                     <BookmarkIcon class="w-5 h-5 text-charcoal" />
                 </div>
                 <h3 class="text-3xl font-bold text-charcoalDark">8</h3>
                 <p class="text-xs text-gray-500 mt-3">Buku tersimpan di wishlist</p>
-            </div>
+            </AccentCard>
         </div>
 
         <!-- Banner Tagihan Denda -->
-        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
+        <Alert class="items-center justify-between p-4! bg-amber-50! border-amber-200!">
+            <template #icon>
                 <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
                     <BanknotesIcon class="w-6 h-6" />
                 </div>
-                <div>
-                    <h4 class="text-sm font-bold text-charcoalDark">Tagihan Denda Belum Lunas</h4>
-                    <p class="text-xs text-gray-600 mt-0.5">
-                        Total kewajiban denda keterlambatan:
-                        <span class="font-bold text-charcoalDark">Rp 15.000</span>
-                    </p>
-                </div>
-            </div>
-            <a href="https://tripay.co.id/checkout/..." target="_blank" rel="noopener noreferrer"
-                class="bg-mustard hover:bg-mustardHover text-charcoalDark px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shrink-0">
-                Bayar Sekarang
-                <ArrowTopRightOnSquareIcon class="w-4 h-4" />
-            </a>
-        </div>
+            </template>
+            <template #title>
+                <h4 class="text-sm font-bold text-charcoalDark">Tagihan Denda Belum Lunas</h4>
+            </template>
+            <template #description>
+                <p class="text-xs text-gray-600 mt-0.5">
+                    Total kewajiban denda keterlambatan:
+                    <span class="font-bold text-charcoalDark">Rp 15.000</span>
+                </p>
+            </template>
+            <template #action>
+                <Button
+                    variant="primary"
+                    href="https://tripay.co.id/checkout/..."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-xs! py-2! px-4! rounded-lg! gap-1.5! shrink-0"
+                >
+                    Bayar Sekarang
+                    <template #iconRight>
+                        <ArrowTopRightOnSquareIcon class="w-4 h-4" />
+                    </template>
+                </Button>
+            </template>
+        </Alert>
 
         <!-- Grid Transaksi & Bookmark -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Transaksi Aktif -->
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col">
+            <Card class="p-6 flex flex-col">
                 <h3 class="text-base font-bold text-charcoalDark mb-4">Peminjaman Aktif</h3>
                 <div class="space-y-3">
                     <div
@@ -90,10 +106,10 @@ import {
                         </div>
                     </div>
                 </div>
-            </div>
+            </Card>
 
             <!-- Bookmark Terbaru -->
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col">
+            <Card class="p-6 flex flex-col">
                 <h3 class="text-base font-bold text-charcoalDark mb-4">Bookmark Terbaru</h3>
                 <div class="space-y-3">
                     <div
@@ -107,7 +123,7 @@ import {
                         </div>
                     </div>
                 </div>
-            </div>
+            </Card>
         </div>
     </div>
 </template>

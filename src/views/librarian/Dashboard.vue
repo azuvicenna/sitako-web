@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+import dayjs from 'dayjs'
 import {
     BookmarkIcon,
     UserGroupIcon,
@@ -12,7 +14,100 @@ import {
 } from '@heroicons/vue/24/outline'
 import { ShieldCheckIcon } from '@heroicons/vue/24/solid'
 
+import Button from '@/components/common/Button.vue'
+import Input from '@/components/common/Input.vue'
+import Card from '@/components/common/Card.vue'
+import AccentCard from '@/components/common/AccentCard.vue'
+import Alert from '@/components/common/Alert.vue'
+import Badge, { type BadgeVariant } from '@/components/common/Badge.vue'
+import Table from '@/components/tables/Table.vue'
+import type { TableColumn, PaginationMeta } from '@/types/table'
+
 const barcodeInput = ref('')
+
+const columns: TableColumn[] = [
+    { key: 'kdTransaksi', label: 'ID Pinjam' },
+    { key: 'namaAnggota', label: 'Anggota' },
+    { key: 'judulBuku', label: 'Judul Buku' },
+    { key: 'tglPinjam', label: 'Tgl Pinjam' },
+    { key: 'tglKembali', label: 'Batas Kembali' },
+    { key: 'status', label: 'Status', align: 'center' },
+]
+
+const currentStatus = ref('Semua')
+const currentPage = ref(1)
+const transactions = ref<any[]>([])
+const meta = ref<PaginationMeta | null>(null)
+const summary = ref({
+    semua: 0,
+    dipinjam: 0,
+    terlambat: 0,
+    dikembalikan: 0,
+})
+const isLoading = ref(false)
+
+const fetchTransactions = async () => {
+    isLoading.value = true
+    try {
+        const params = new URLSearchParams({
+            page: currentPage.value.toString(),
+            limit: '10',
+            ...(currentStatus.value !== 'Semua' && { status: currentStatus.value }),
+        })
+
+        const { data: res } = await axios.get(`/api/dashboard/transaction/today?${params}`, {
+            withCredentials: true,
+        })
+
+        if (res.success) {
+            transactions.value = res.data || []
+            meta.value = res.meta || null
+            if (res.summary) {
+                summary.value = {
+                    semua: res.summary.semua ?? 0,
+                    dipinjam: res.summary.dipinjam ?? 0,
+                    terlambat: res.summary.terlambat ?? 0,
+                    dikembalikan: res.summary.dikembalikan ?? 0,
+                }
+            }
+        }
+    } catch {
+        transactions.value = []
+    } finally {
+        isLoading.value = false
+    }
+}
+
+const setStatusFilter = (status: string) => {
+    currentStatus.value = status
+    currentPage.value = 1
+    fetchTransactions()
+}
+
+const handlePageChange = (page: number) => {
+    currentPage.value = page
+    fetchTransactions()
+}
+
+const getStatusBadgeVariant = (status: string): BadgeVariant => {
+    switch (status) {
+        case 'Dipinjam':
+            return 'warning'
+        case 'Dikembalikan':
+            return 'success'
+        case 'Terlambat':
+            return 'danger'
+        case 'Menunggu Persetujuan':
+        case 'Menunggu Diambil':
+            return 'info'
+        default:
+            return 'neutral'
+    }
+}
+
+onMounted(() => {
+    fetchTransactions()
+})
 </script>
 
 <template>
@@ -24,76 +119,67 @@ const barcodeInput = ref('')
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm border-t-4 border-t-mustard">
+            <AccentCard>
                 <div class="flex justify-between items-start mb-2">
                     <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Total Koleksi Buku</p>
                     <BookmarkIcon class="w-5 h-5 text-charcoal" />
                 </div>
-                <h3 class="text-3xl font-bold text-charcoalDark">300 <span class="text-xl text-gray-400 font-medium">/
-                        200</span></h3>
+                <h3 class="text-3xl font-bold text-charcoalDark">300 <span class="text-xl text-gray-400 font-medium">/ 200</span></h3>
                 <p class="text-xs text-gray-500 mt-4">Total Buku Fisik / Digital</p>
-            </div>
+            </AccentCard>
 
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm border-t-4 border-t-mustard">
+            <AccentCard>
                 <div class="flex justify-between items-start mb-2">
                     <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Total Anggota Aktif</p>
                     <UserGroupIcon class="w-5 h-5 text-charcoal" />
                 </div>
                 <h3 class="text-3xl font-bold text-charcoalDark">1000</h3>
                 <p class="text-xs text-gray-500 mt-4">Total Siswa Anggota Aktif</p>
-            </div>
+            </AccentCard>
 
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm border-t-4 border-t-mustard">
+            <AccentCard>
                 <div class="flex justify-between items-start mb-2">
                     <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Total Buku Dipinjam</p>
                     <ArrowUpCircleIcon class="w-5 h-5 text-charcoal" />
                 </div>
                 <h3 class="text-3xl font-bold text-charcoalDark">300</h3>
                 <p class="text-xs text-gray-500 mt-4">Total Buku yang Masih Dipinjam</p>
-            </div>
+            </AccentCard>
 
-            <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm border-t-4 border-t-mustard">
+            <AccentCard>
                 <div class="flex justify-between items-start mb-2">
                     <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Total Jatuh Tempo</p>
                     <ExclamationCircleIcon class="w-5 h-5 text-charcoal" />
                 </div>
                 <h3 class="text-3xl font-bold text-charcoalDark">200</h3>
                 <p class="text-xs text-gray-500 mt-4">Total Peminjaman Terkena Denda</p>
-            </div>
+            </AccentCard>
         </div>
 
         <!-- Quick Action Bar -->
-        <div
-            class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between gap-4 mb-8">
+        <Card class="p-4 flex items-center justify-between gap-4 mb-8">
             <div class="flex-1 flex gap-2">
-                <div class="relative flex-1">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <QrCodeIcon class="w-5 h-5 text-gray-500" />
-                    </div>
-                    <input v-model="barcodeInput" type="text"
-                        class="block w-full pl-10 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm placeholder-gray-500 focus:outline-none focus:border-mustard focus:ring-1 focus:ring-mustard"
-                        placeholder="NIS Anggota atau ISBN Buku...">
-                </div>
-                <button
-                    class="bg-charcoalDark hover:bg-charcoal text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors shrink-0">
+                <Input
+                    v-model="barcodeInput"
+                    :icon="QrCodeIcon"
+                    placeholder="NIS Anggota atau ISBN Buku..."
+                />
+                <Button variant="dark" class="shrink-0">
                     Enter
-                </button>
+                </Button>
             </div>
             <div class="flex items-center gap-3 shrink-0">
-                <button
-                    class="bg-mustard hover:bg-mustardHover text-charcoalDark px-4 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-colors whitespace-nowrap">
-                    <PlusCircleIcon class="w-5 h-5" /> Proses Pinjam
-                </button>
-                <button
-                    class="bg-gray-100 hover:bg-gray-200 text-charcoalDark px-4 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-colors border border-gray-200 whitespace-nowrap">
-                    <ArrowRightCircleIcon class="w-5 h-5" /> Kembalikan Cepat
-                </button>
-                <button
-                    class="bg-gray-100 hover:bg-gray-200 text-charcoalDark px-4 py-2 rounded-md text-sm font-bold flex items-center gap-2 transition-colors border border-gray-200 whitespace-nowrap">
-                    <BookOpenIcon class="w-5 h-5" /> Tambah Koleksi
-                </button>
+                <Button variant="primary" :icon="PlusCircleIcon">
+                    Proses Pinjam
+                </Button>
+                <Button variant="secondary" :icon="ArrowRightCircleIcon">
+                    Kembalikan Cepat
+                </Button>
+                <Button variant="secondary" :icon="BookOpenIcon">
+                    Tambah Koleksi
+                </Button>
             </div>
-        </div>
+        </Card>
 
         <!-- Data Table & Chart -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -102,42 +188,84 @@ const barcodeInput = ref('')
                     <h3 class="text-lg font-bold text-charcoalDark leading-tight">Transaksi Sirkulasi<br>Hari Ini</h3>
                     <div class="flex items-center gap-1 bg-white border border-gray-200 p-1 rounded-lg shadow-sm">
                         <button
-                            class="px-3 py-1.5 bg-mustard shadow-sm rounded-md text-xs font-bold text-charcoalDark">Semua<br><span
-                                class="font-normal text-charcoal">(84)</span></button>
+                            type="button"
+                            @click="setStatusFilter('Semua')"
+                            :class="[
+                                'px-3 py-1.5 rounded-md text-xs font-bold transition-colors text-center cursor-pointer',
+                                currentStatus === 'Semua' ? 'bg-mustard text-charcoalDark shadow-sm' : 'text-gray-500 hover:bg-gray-50'
+                            ]"
+                        >
+                            Semua<br><span :class="currentStatus === 'Semua' ? 'font-normal text-charcoal' : 'font-normal'">({{ summary.semua }})</span>
+                        </button>
                         <button
-                            class="px-3 py-1.5 text-xs font-bold text-gray-500 hover:bg-gray-50 rounded-md transition-colors text-center">Dipinjam<br><span
-                                class="font-normal">(84)</span></button>
+                            type="button"
+                            @click="setStatusFilter('Dipinjam')"
+                            :class="[
+                                'px-3 py-1.5 rounded-md text-xs font-bold transition-colors text-center cursor-pointer',
+                                currentStatus === 'Dipinjam' ? 'bg-mustard text-charcoalDark shadow-sm' : 'text-gray-500 hover:bg-gray-50'
+                            ]"
+                        >
+                            Dipinjam<br><span class="font-normal">({{ summary.dipinjam }})</span>
+                        </button>
                         <button
-                            class="px-3 py-1.5 text-xs font-bold text-gray-500 hover:bg-gray-50 rounded-md transition-colors text-center">Lewat
-                            Tempo<br><span class="font-normal">(84)</span></button>
+                            type="button"
+                            @click="setStatusFilter('Terlambat')"
+                            :class="[
+                                'px-3 py-1.5 rounded-md text-xs font-bold transition-colors text-center cursor-pointer',
+                                currentStatus === 'Terlambat' ? 'bg-mustard text-charcoalDark shadow-sm' : 'text-gray-500 hover:bg-gray-50'
+                            ]"
+                        >
+                            Lewat Tempo<br><span class="font-normal">({{ summary.terlambat }})</span>
+                        </button>
                         <button
-                            class="px-3 py-1.5 text-xs font-bold text-gray-500 hover:bg-gray-50 rounded-md transition-colors text-center">Selesai<br><span
-                                class="font-normal">(84)</span></button>
-                        <span
-                            class="px-3 py-1.5 text-xs font-medium text-gray-400 border-l border-gray-200 ml-1 text-center">84<br>entri</span>
+                            type="button"
+                            @click="setStatusFilter('Dikembalikan')"
+                            :class="[
+                                'px-3 py-1.5 rounded-md text-xs font-bold transition-colors text-center cursor-pointer',
+                                currentStatus === 'Dikembalikan' ? 'bg-mustard text-charcoalDark shadow-sm' : 'text-gray-500 hover:bg-gray-50'
+                            ]"
+                        >
+                            Selesai<br><span class="font-normal">({{ summary.dikembalikan }})</span>
+                        </button>
+                        <span class="px-3 py-1.5 text-xs font-medium text-gray-400 border-l border-gray-200 ml-1 text-center">
+                            {{ meta?.totalRows ?? summary.semua }}<br>entri
+                        </span>
                     </div>
                 </div>
-                <div class="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden min-h-75">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr
-                                class="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider border-b border-gray-200">
-                                <th class="px-4 py-3">ID Pinjam</th>
-                                <th class="px-4 py-3">Anggota</th>
-                                <th class="px-4 py-3">Judul Buku</th>
-                                <th class="px-4 py-3">Tgl Pinjam</th>
-                                <th class="px-4 py-3">Batas Kembali</th>
-                                <th class="px-4 py-3">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Row items -->
-                        </tbody>
-                    </table>
-                </div>
+
+                <Table
+                    :columns="columns"
+                    :items="transactions"
+                    :meta="meta"
+                    :loading="isLoading"
+                    empty-message="Belum ada transaksi sirkulasi hari ini"
+                    @change-page="handlePageChange"
+                >
+                    <template #cell-namaAnggota="{ item }">
+                        {{ item.namaAnggota || item.anggota?.nama || item.anggotaId || '-' }}
+                    </template>
+
+                    <template #cell-judulBuku="{ item }">
+                        {{ item.judulBuku || item.buku?.judul || item.bukuId || '-' }}
+                    </template>
+
+                    <template #cell-tglPinjam="{ value }">
+                        {{ value ? dayjs(value).format('DD/MM/YYYY') : '-' }}
+                    </template>
+
+                    <template #cell-tglKembali="{ value }">
+                        {{ value ? dayjs(value).format('DD/MM/YYYY') : '-' }}
+                    </template>
+
+                    <template #cell-status="{ value }">
+                        <Badge :variant="getStatusBadgeVariant(value)">
+                            {{ value || '-' }}
+                        </Badge>
+                    </template>
+                </Table>
             </div>
 
-            <div class="lg:col-span-1 bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col">
+            <Card class="lg:col-span-1 p-6 flex flex-col">
                 <div class="flex justify-between items-start mb-6">
                     <div>
                         <h3 class="text-lg font-bold text-charcoalDark">Statistik Peminjaman</h3>
@@ -161,21 +289,14 @@ const barcodeInput = ref('')
                             class="text-mustardHover">70
                             Buku</span></p>
                 </div>
-            </div>
+            </Card>
         </div>
 
         <!-- Alert Box -->
-        <div class="bg-mustard/10 p-5 rounded-xl border border-mustard/30 flex items-start gap-4">
-            <div class="mt-0.5">
-                <ShieldCheckIcon class="w-6 h-6 text-mustardHover" />
-            </div>
-            <div>
-                <h4 class="font-bold text-charcoalDark text-sm">Regulasi Sirkulasi Aktif</h4>
-                <p class="text-xs text-charcoal mt-1">
-                    Batas pinjam mahasiswa maks 3 buku (7 hari kerja). Perpanjangan mandiri diperbolehkan 1x apabila
-                    buku tidak sedang direservasi anggota lain. Denda Rp 1.000 / hari / buku.
-                </p>
-            </div>
-        </div>
+        <Alert
+            :icon="ShieldCheckIcon"
+            title="Regulasi Sirkulasi Aktif"
+            description="Batas pinjam mahasiswa maks 3 buku (7 hari kerja). Perpanjangan mandiri diperbolehkan 1x apabila buku tidak sedang direservasi anggota lain. Denda Rp 1.000 / hari / buku."
+        />
     </div>
 </template>

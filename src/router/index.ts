@@ -15,7 +15,7 @@ const router = createRouter({
       ],
     },
     {
-      path: '/member',
+      path: '/anggota',
       component: () => import('@/layouts/MainLayout.vue'),
       children: [
         {
