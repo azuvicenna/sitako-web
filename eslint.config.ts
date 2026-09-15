@@ -23,6 +23,22 @@ export default defineConfigWithVueTs(
   vueTsConfigs.recommended,
 
   {
+    rules: {
+      eqeqeq: 'error',
+      'prefer-const': 'error',
+      'no-var': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+      'no-console': 'warn',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'vue/multi-word-component-names': 'off',
+    },
+  },
+
+  {
     ...pluginCypress.configs.recommended,
     files: [
       'cypress/e2e/**/*.{cy,spec}.{js,ts,jsx,tsx}',
@@ -33,6 +49,13 @@ export default defineConfigWithVueTs(
   {
     ...pluginVitest.configs.recommended,
     files: ['src/**/__tests__/*'],
+  },
+
+  {
+    files: ['src/**/__tests__/*', 'cypress/**'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
   },
 
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),

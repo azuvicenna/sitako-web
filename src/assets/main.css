@@ -1,12 +1,12 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-    --font-sans: 'Poppins', sans-serif;
+  --font-sans: 'Poppins', sans-serif;
 
-    --color-charcoal: #374151;
-    --color-charcoalDark: #1f2937;
-    --color-mustard: #eab308;
-    --color-mustardHover: #ca8a04;
-    --color-secondary: #e5e7eb;
-    --color-secondaryHover: #d1d5db;
+  --color-charcoal: #374151;
+  --color-charcoalDark: #1f2937;
+  --color-mustard: #eab308;
+  --color-mustardHover: #ca8a04;
+  --color-secondary: #e5e7eb;
+  --color-secondaryHover: #d1d5db;
 }

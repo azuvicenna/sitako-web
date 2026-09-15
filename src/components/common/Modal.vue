@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { computed, watch, onMounted, onUnmounted, type Component } from 'vue'
-import { XMarkIcon } from '@heroicons/vue/24/outline'
+import { computed, watch, onMounted, onUnmounted, type Component } from 'vue';
+import { XMarkIcon } from '@heroicons/vue/24/outline';
 
-type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl'
-type IconVariant = 'mustard' | 'danger' | 'info' | 'success'
+type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+type IconVariant = 'mustard' | 'danger' | 'info' | 'success';
 
 interface Props {
-  modelValue: boolean
-  title?: string
-  description?: string
-  icon?: Component
-  iconVariant?: IconVariant
-  size?: ModalSize
-  closeOnOverlayClick?: boolean
-  showCloseButton?: boolean
+  modelValue: boolean;
+  title?: string;
+  description?: string;
+  icon?: Component;
+  iconVariant?: IconVariant;
+  size?: ModalSize;
+  closeOnOverlayClick?: boolean;
+  showCloseButton?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -22,82 +22,82 @@ const props = withDefaults(defineProps<Props>(), {
   iconVariant: 'mustard',
   closeOnOverlayClick: true,
   showCloseButton: true,
-})
+});
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: boolean): void
-  (e: 'close'): void
-}>()
+  (e: 'update:modelValue', value: boolean): void;
+  (e: 'close'): void;
+}>();
 
 const close = () => {
-  emit('update:modelValue', false)
-  emit('close')
-}
+  emit('update:modelValue', false);
+  emit('close');
+};
 
 const handleOverlayClick = () => {
   if (props.closeOnOverlayClick) {
-    close()
+    close();
   }
-}
+};
 
 // Size mapping
 const sizeClasses = computed(() => {
   switch (props.size) {
     case 'sm':
-      return 'max-w-sm'
+      return 'max-w-sm';
     case 'lg':
-      return 'max-w-lg'
+      return 'max-w-lg';
     case 'xl':
-      return 'max-w-xl'
+      return 'max-w-xl';
     case '2xl':
-      return 'max-w-2xl'
+      return 'max-w-2xl';
     case 'md':
     default:
-      return 'max-w-md'
+      return 'max-w-md';
   }
-})
+});
 
 // Icon variant styling
 const iconVariantClasses = computed(() => {
   switch (props.iconVariant) {
     case 'danger':
-      return 'bg-red-100 text-red-600'
+      return 'bg-red-100 text-red-600';
     case 'success':
-      return 'bg-green-100 text-green-600'
+      return 'bg-green-100 text-green-600';
     case 'info':
-      return 'bg-blue-100 text-blue-600'
+      return 'bg-blue-100 text-blue-600';
     case 'mustard':
     default:
-      return 'bg-mustard/15 text-mustardHover'
+      return 'bg-mustard/15 text-mustardHover';
   }
-})
+});
 
 // Escape key listener & body scroll lock
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && props.modelValue) {
-    close()
+    close();
   }
-}
+};
 
 watch(
   () => props.modelValue,
   (val) => {
     if (typeof document !== 'undefined') {
-      document.body.style.overflow = val ? 'hidden' : ''
+      document.body.style.overflow = val ? 'hidden' : '';
     }
   },
-)
+);
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown)
-})
+  window.addEventListener('keydown', handleKeyDown);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown)
+  window.removeEventListener('keydown', handleKeyDown);
   if (typeof document !== 'undefined') {
-    document.body.style.overflow = ''
+    document.body.style.overflow = '';
   }
-})
+});
 </script>
 
 <template>
@@ -191,7 +191,9 @@ onUnmounted(() => {
 
 .modal-fade-enter-active :deep(.relative),
 .modal-fade-leave-active :deep(.relative) {
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.2s ease;
 }
 
 .modal-fade-enter-from :deep(.relative) {

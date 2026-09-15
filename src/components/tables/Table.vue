@@ -1,15 +1,15 @@
 <script setup lang="ts" generic="T extends Record<string, any>">
-import { computed } from 'vue'
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
-import Card from '@/components/common/Card.vue'
-import type { TableColumn, PaginationMeta } from '@/types/table'
+import { computed } from 'vue';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline';
+import Card from '@/components/common/Card.vue';
+import type { TableColumn, PaginationMeta } from '@/types/table';
 
 interface Props {
-  columns: TableColumn<T>[]
-  items: T[]
-  meta?: PaginationMeta | null
-  loading?: boolean
-  emptyMessage?: string
+  columns: TableColumn<T>[];
+  items: T[];
+  meta?: PaginationMeta | null;
+  loading?: boolean;
+  emptyMessage?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -17,31 +17,31 @@ const props = withDefaults(defineProps<Props>(), {
   meta: null,
   loading: false,
   emptyMessage: 'Tidak ada data yang ditemukan',
-})
+});
 
 const emit = defineEmits<{
-  (e: 'change-page', page: number): void
-}>()
+  (e: 'change-page', page: number): void;
+}>();
 
 const entryInfo = computed(() => {
-  if (!props.meta || props.meta.totalRows === 0) return null
-  const from = (props.meta.page - 1) * props.meta.limit + 1
-  const to = Math.min(props.meta.page * props.meta.limit, props.meta.totalRows)
-  return { from, to, total: props.meta.totalRows }
-})
+  if (!props.meta || props.meta.totalRows === 0) return null;
+  const from = (props.meta.page - 1) * props.meta.limit + 1;
+  const to = Math.min(props.meta.page * props.meta.limit, props.meta.totalRows);
+  return { from, to, total: props.meta.totalRows };
+});
 
 const visiblePages = computed(() => {
-  if (!props.meta) return []
-  const total = props.meta.totalPages
-  const current = props.meta.page
-  const delta = 2
-  const pages: number[] = []
+  if (!props.meta) return [];
+  const total = props.meta.totalPages;
+  const current = props.meta.page;
+  const delta = 2;
+  const pages: number[] = [];
 
   for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) {
-    pages.push(i)
+    pages.push(i);
   }
-  return pages
-})
+  return pages;
+});
 </script>
 
 <template>
@@ -49,14 +49,20 @@ const visiblePages = computed(() => {
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
-          <tr class="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider border-b border-gray-200">
+          <tr
+            class="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider border-b border-gray-200"
+          >
             <th
               v-for="col in columns"
               :key="col.key"
               :class="[
                 'px-4 py-3',
-                col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left',
-                col.width ?? ''
+                col.align === 'center'
+                  ? 'text-center'
+                  : col.align === 'right'
+                    ? 'text-right'
+                    : 'text-left',
+                col.width ?? '',
               ]"
             >
               {{ col.label }}
@@ -92,7 +98,11 @@ const visiblePages = computed(() => {
               :key="col.key"
               :class="[
                 'px-4 py-3.5',
-                col.align === 'center' ? 'text-center' : col.align === 'right' ? 'text-right' : 'text-left'
+                col.align === 'center'
+                  ? 'text-center'
+                  : col.align === 'right'
+                    ? 'text-right'
+                    : 'text-left',
               ]"
             >
               <slot :name="`cell-${col.key}`" :item="item" :value="item[col.key]" :index="index">
@@ -136,7 +146,7 @@ const visiblePages = computed(() => {
             'px-2.5 py-1 rounded-md text-xs font-semibold transition-colors',
             pageNum === meta.page
               ? 'bg-mustard text-charcoalDark font-bold shadow-sm'
-              : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+              : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50',
           ]"
         >
           {{ pageNum }}

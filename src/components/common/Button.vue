@@ -1,35 +1,35 @@
 <script setup lang="ts">
-import { computed, type Component } from 'vue'
+import { computed, type Component } from 'vue';
 
 interface Props {
-  variant?: 'secondary' | 'primary' | 'dark'
-  type?: 'button' | 'submit' | 'reset'
-  icon?: Component
-  disabled?: boolean
-  href?: string
-  target?: string
-  rel?: string
+  variant?: 'secondary' | 'primary' | 'dark';
+  type?: 'button' | 'submit' | 'reset';
+  icon?: Component;
+  disabled?: boolean;
+  href?: string;
+  target?: string;
+  rel?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   variant: 'secondary',
   type: 'button',
   disabled: false,
-})
+});
 
-const isLink = computed(() => !!props.href)
+const isLink = computed(() => !!props.href);
 
 const variantClasses = computed(() => {
   switch (props.variant) {
     case 'primary':
-      return 'bg-mustard hover:bg-mustardHover text-charcoalDark border border-transparent'
+      return 'bg-mustard hover:bg-mustardHover text-charcoalDark border border-transparent';
     case 'dark':
-      return 'bg-charcoalDark hover:bg-charcoal text-white border border-transparent'
+      return 'bg-charcoalDark hover:bg-charcoal text-white border border-transparent';
     case 'secondary':
     default:
-      return 'bg-gray-100 hover:bg-secondary text-charcoalDark border border-gray-200'
+      return 'bg-gray-100 hover:bg-secondary text-charcoalDark border border-gray-200';
   }
-})
+});
 </script>
 
 <template>

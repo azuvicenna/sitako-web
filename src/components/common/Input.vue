@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import type { Component } from 'vue'
+import type { Component } from 'vue';
 
 interface Props {
-  modelValue?: string | number
-  type?: string
-  placeholder?: string
-  icon?: Component
-  disabled?: boolean
-  id?: string
-  name?: string
+  modelValue?: string | number;
+  type?: string;
+  placeholder?: string;
+  icon?: Component;
+  disabled?: boolean;
+  id?: string;
+  name?: string;
 }
 
 withDefaults(defineProps<Props>(), {
@@ -16,16 +16,16 @@ withDefaults(defineProps<Props>(), {
   type: 'text',
   placeholder: '',
   disabled: false,
-})
+});
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-}>()
+  (e: 'update:modelValue', value: string): void;
+}>();
 
 const onInput = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  emit('update:modelValue', target.value)
-}
+  const target = event.target as HTMLInputElement;
+  emit('update:modelValue', target.value);
+};
 </script>
 
 <template>
