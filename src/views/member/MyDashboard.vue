@@ -43,19 +43,22 @@ const {
   },
 });
 
-const statistik = computed(() => dashboardData.value?.statistik || {
-  bukuDipinjam: 0,
-  totalDenda: 0,
-  totalBookmark: 0,
-});
+const statistics = computed(
+  () =>
+    dashboardData.value?.statistik || {
+      bukuDipinjam: 0,
+      totalDenda: 0,
+      totalBookmark: 0,
+    },
+);
 
-const transaksiAktif = computed(() => dashboardData.value?.transaksiAktif || []);
-const tagihanDenda = computed(() => dashboardData.value?.tagihanDenda || []);
-const bookmarkTerbaru = computed(() => dashboardData.value?.bookmarkTerbaru || []);
+const activeTransactions = computed(() => dashboardData.value?.transaksiAktif || []);
+const fineBills = computed(() => dashboardData.value?.tagihanDenda || []);
+const recentBookmarks = computed(() => dashboardData.value?.bookmarkTerbaru || []);
 
 // URL checkout denda pertama yang tersedia (jika ada)
 const primaryCheckoutUrl = computed(() => {
-  const bill = tagihanDenda.value.find((b) => !!b.checkoutUrl);
+  const bill = fineBills.value.find((b) => !!b.checkoutUrl);
   return bill ? bill.checkoutUrl : null;
 });
 
@@ -163,7 +166,7 @@ const getDueInfo = (tglKembali: string | null) => {
         </div>
         <div v-else>
           <h3 class="text-3xl font-bold text-charcoalDark">
-            {{ statistik.bukuDipinjam }}
+            {{ statistics.bukuDipinjam }}
           </h3>
           <div class="flex items-center justify-between mt-3 text-xs text-gray-500">
             <span>Sedang aktif dipinjam</span>
@@ -176,7 +179,7 @@ const getDueInfo = (tglKembali: string | null) => {
 
       <!-- 2. Total Denda -->
       <AccentCard
-        :accent-color="statistik.totalDenda > 0 ? 'border-t-rose-500' : 'border-t-emerald-500'"
+        :accent-color="statistics.totalDenda > 0 ? 'border-t-rose-500' : 'border-t-emerald-500'"
         class="cursor-pointer hover:shadow-md transition-shadow duration-200"
         @click="router.push('/anggota/denda')"
       >
@@ -184,7 +187,7 @@ const getDueInfo = (tglKembali: string | null) => {
           <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Total Denda</p>
           <BanknotesIcon
             class="w-5 h-5"
-            :class="statistik.totalDenda > 0 ? 'text-rose-500' : 'text-emerald-500'"
+            :class="statistics.totalDenda > 0 ? 'text-rose-500' : 'text-emerald-500'"
           />
         </div>
         <div v-if="isLoading" class="animate-pulse py-2">
@@ -193,13 +196,13 @@ const getDueInfo = (tglKembali: string | null) => {
         <div v-else>
           <h3
             class="text-3xl font-bold"
-            :class="statistik.totalDenda > 0 ? 'text-rose-600' : 'text-emerald-600'"
+            :class="statistics.totalDenda > 0 ? 'text-rose-600' : 'text-emerald-600'"
           >
-            {{ formatRupiah(statistik.totalDenda) }}
+            {{ formatRupiah(statistics.totalDenda) }}
           </h3>
           <div class="flex items-center justify-between mt-3 text-xs text-gray-500">
             <span>
-              {{ statistik.totalDenda > 0 ? 'Menunggu pembayaran' : 'Bebas tanggungan' }}
+              {{ statistics.totalDenda > 0 ? 'Menunggu pembayaran' : 'Bebas tanggungan' }}
             </span>
             <span class="text-mustard font-semibold flex items-center gap-0.5 hover:underline">
               Detail <ChevronRightIcon class="w-3.5 h-3.5" />
@@ -223,7 +226,7 @@ const getDueInfo = (tglKembali: string | null) => {
         </div>
         <div v-else>
           <h3 class="text-3xl font-bold text-charcoalDark">
-            {{ statistik.totalBookmark }}
+            {{ statistics.totalBookmark }}
           </h3>
           <div class="flex items-center justify-between mt-3 text-xs text-gray-500">
             <span>Buku di wishlist Anda</span>
@@ -237,7 +240,7 @@ const getDueInfo = (tglKembali: string | null) => {
 
     <!-- BANNER TAGIHAN DENDA JIKA ADA -->
     <Alert
-      v-if="statistik.totalDenda > 0"
+      v-if="statistics.totalDenda > 0"
       class="items-center justify-between p-4! bg-rose-50! border-rose-200!"
     >
       <template #icon>
@@ -253,8 +256,8 @@ const getDueInfo = (tglKembali: string | null) => {
       <template #description>
         <p class="text-xs text-gray-600 mt-0.5">
           Total kewajiban denda keterlambatan/buku hilang:
-          <span class="font-bold text-rose-700">{{ formatRupiah(statistik.totalDenda) }}</span>.
-          Silakan selesaikan pembayaran untuk memulihkan akses peminjaman buku baru.
+          <span class="font-bold text-rose-700">{{ formatRupiah(statistics.totalDenda) }}</span
+          >. Silakan selesaikan pembayaran untuk memulihkan akses peminjaman buku baru.
         </p>
       </template>
       <template #action>
@@ -264,7 +267,7 @@ const getDueInfo = (tglKembali: string | null) => {
           :href="primaryCheckoutUrl"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-xs! py-2! px-4! rounded-lg! gap-1.5! shrink-0 !bg-rose-600 hover:!bg-rose-700"
+          class="text-xs! py-2! px-4! rounded-lg! gap-1.5! shrink-0 bg-rose-600! hover:bg-rose-700!"
         >
           Bayar Online
           <template #iconRight>
@@ -275,7 +278,7 @@ const getDueInfo = (tglKembali: string | null) => {
           v-else
           variant="primary"
           @click="router.push('/anggota/denda')"
-          class="text-xs! py-2! px-4! rounded-lg! gap-1.5! shrink-0 !bg-rose-600 hover:!bg-rose-700"
+          class="text-xs! py-2! px-4! rounded-lg! gap-1.5! shrink-0 bg-rose-600! hover:bg-rose-700!"
         >
           Bayar Sekarang
           <template #iconRight>
@@ -286,13 +289,17 @@ const getDueInfo = (tglKembali: string | null) => {
     </Alert>
 
     <!-- QUICK ACTIONS -->
-    <Card class="p-4 flex flex-wrap items-center justify-between gap-3 bg-mustard/10 border-mustard/30">
+    <Card
+      class="p-4 flex flex-wrap items-center justify-between gap-3 bg-mustard/10 border-mustard/30"
+    >
       <div class="flex items-center gap-3">
         <div class="p-2.5 rounded-xl bg-mustard text-charcoalDark">
           <MagnifyingGlassIcon class="w-5 h-5" />
         </div>
         <div>
-          <h4 class="text-sm font-bold text-charcoalDark">Sedang Mencari Referensi atau Buku Baru?</h4>
+          <h4 class="text-sm font-bold text-charcoalDark">
+            Sedang Mencari Referensi atau Buku Baru?
+          </h4>
           <p class="text-xs text-gray-600">
             Jelajahi ribuan koleksi buku fisik maupun digital perpustakaan Sitako.
           </p>
@@ -342,7 +349,11 @@ const getDueInfo = (tglKembali: string | null) => {
 
           <!-- Loading state -->
           <div v-if="isLoading" class="space-y-3">
-            <div v-for="n in 2" :key="n" class="animate-pulse flex gap-3 p-3 border border-gray-100 rounded-lg">
+            <div
+              v-for="n in 2"
+              :key="n"
+              class="animate-pulse flex gap-3 p-3 border border-gray-100 rounded-lg"
+            >
               <div class="w-14 h-20 bg-gray-200 rounded-md shrink-0"></div>
               <div class="flex-1 space-y-2 py-1">
                 <div class="h-4 bg-gray-200 rounded w-1/4"></div>
@@ -353,14 +364,16 @@ const getDueInfo = (tglKembali: string | null) => {
           </div>
 
           <!-- List Peminjaman -->
-          <div v-else-if="transaksiAktif.length > 0" class="space-y-3">
+          <div v-else-if="activeTransactions.length > 0" class="space-y-3">
             <div
-              v-for="item in transaksiAktif"
+              v-for="item in activeTransactions"
               :key="item.id"
               class="flex items-center gap-4 p-3 border border-gray-100 rounded-xl hover:bg-gray-50/80 transition-colors"
             >
               <!-- Cover Buku -->
-              <div class="w-14 h-20 bg-gray-100 rounded-md overflow-hidden border border-gray-200 shrink-0 flex items-center justify-center">
+              <div
+                class="w-14 h-20 bg-gray-100 rounded-md overflow-hidden border border-gray-200 shrink-0 flex items-center justify-center"
+              >
                 <img
                   v-if="item.buku.cover"
                   :src="item.buku.cover"
@@ -382,10 +395,15 @@ const getDueInfo = (tglKembali: string | null) => {
                 </h4>
 
                 <!-- Info Due Date -->
-                <div v-if="getDueInfo(item.tglKembali)" class="mt-1.5 flex items-center gap-1.5 text-xs">
+                <div
+                  v-if="getDueInfo(item.tglKembali)"
+                  class="mt-1.5 flex items-center gap-1.5 text-xs"
+                >
                   <ClockIcon
                     class="w-4 h-4 shrink-0"
-                    :class="getDueInfo(item.tglKembali)?.isOverdue ? 'text-rose-500' : 'text-gray-400'"
+                    :class="
+                      getDueInfo(item.tglKembali)?.isOverdue ? 'text-rose-500' : 'text-gray-400'
+                    "
                   />
                   <span
                     :class="[
@@ -409,7 +427,9 @@ const getDueInfo = (tglKembali: string | null) => {
             v-else
             class="py-10 text-center flex flex-col items-center justify-center border border-dashed border-gray-200 rounded-xl"
           >
-            <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
+            <div
+              class="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-3"
+            >
               <BookOpenIcon class="w-6 h-6" />
             </div>
             <p class="text-sm font-semibold text-charcoalDark">Tidak Ada Peminjaman Aktif</p>
@@ -448,7 +468,11 @@ const getDueInfo = (tglKembali: string | null) => {
 
           <!-- Loading state -->
           <div v-if="isLoading" class="space-y-3">
-            <div v-for="n in 2" :key="n" class="animate-pulse flex gap-3 p-3 border border-gray-100 rounded-lg">
+            <div
+              v-for="n in 2"
+              :key="n"
+              class="animate-pulse flex gap-3 p-3 border border-gray-100 rounded-lg"
+            >
               <div class="w-14 h-20 bg-gray-200 rounded-md shrink-0"></div>
               <div class="flex-1 space-y-2 py-1">
                 <div class="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -458,14 +482,16 @@ const getDueInfo = (tglKembali: string | null) => {
           </div>
 
           <!-- List Bookmark -->
-          <div v-else-if="bookmarkTerbaru.length > 0" class="space-y-3">
+          <div v-else-if="recentBookmarks.length > 0" class="space-y-3">
             <div
-              v-for="item in bookmarkTerbaru"
+              v-for="item in recentBookmarks"
               :key="item.id"
               class="flex items-center gap-4 p-3 border border-gray-100 rounded-xl hover:bg-gray-50/80 transition-colors"
             >
               <!-- Cover Buku -->
-              <div class="w-14 h-20 bg-gray-100 rounded-md overflow-hidden border border-gray-200 shrink-0 flex items-center justify-center">
+              <div
+                class="w-14 h-20 bg-gray-100 rounded-md overflow-hidden border border-gray-200 shrink-0 flex items-center justify-center"
+              >
                 <img
                   v-if="item.buku.cover"
                   :src="item.buku.cover"
@@ -499,7 +525,9 @@ const getDueInfo = (tglKembali: string | null) => {
             v-else
             class="py-10 text-center flex flex-col items-center justify-center border border-dashed border-gray-200 rounded-xl"
           >
-            <div class="w-12 h-12 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center mb-3">
+            <div
+              class="w-12 h-12 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center mb-3"
+            >
               <BookmarkIcon class="w-6 h-6" />
             </div>
             <p class="text-sm font-semibold text-charcoalDark">Belum Ada Bookmark</p>

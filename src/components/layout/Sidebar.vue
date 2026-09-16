@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import {
-  BookOpenIcon,
-  ArrowLeftStartOnRectangleIcon,
-} from '@heroicons/vue/24/outline';
+import { BookOpenIcon, ArrowLeftStartOnRectangleIcon } from '@heroicons/vue/24/outline';
 
 import Button from '@/components/common/Button.vue';
 import Modal from '@/components/common/Modal.vue';
@@ -88,11 +85,7 @@ const isRouteActive = (path: string) => {
     </div>
 
     <div class="flex-1 overflow-y-auto py-4 w-64">
-      <div
-        v-for="group in filteredMenuGroups"
-        :key="group.title"
-        class="mb-6 px-4 last:mb-0"
-      >
+      <div v-for="group in filteredMenuGroups" :key="group.title" class="mb-6 px-4 last:mb-0">
         <p
           v-if="group.title"
           class="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2"

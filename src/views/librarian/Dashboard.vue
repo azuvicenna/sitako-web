@@ -20,7 +20,6 @@ import Button from '@/components/common/Button.vue';
 import Input from '@/components/common/Input.vue';
 import Card from '@/components/common/Card.vue';
 import AccentCard from '@/components/common/AccentCard.vue';
-import Alert from '@/components/common/Alert.vue';
 import Badge, { type BadgeVariant } from '@/components/common/Badge.vue';
 import Table from '@/components/tables/Table.vue';
 import { api } from '@/utils/axios';
@@ -296,7 +295,9 @@ const getStatusBadgeVariant = (status: string): BadgeVariant => {
     </div>
 
     <!-- QUICK ACTION BAR -->
-    <Card class="p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-8">
+    <Card
+      class="p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-8"
+    >
       <div class="flex-1 flex gap-2">
         <Input
           v-model="barcodeInput"
@@ -425,7 +426,7 @@ const getStatusBadgeVariant = (status: string): BadgeVariant => {
 
           <template #cell-judulBuku="{ item }">
             <span
-              class="text-xs text-gray-800 line-clamp-1 max-w-[200px]"
+              class="text-xs text-gray-800 line-clamp-1 max-w-50"
               :title="item.judulBuku || item.bukuId"
             >
               {{ item.judulBuku || item.bukuId || '-' }}

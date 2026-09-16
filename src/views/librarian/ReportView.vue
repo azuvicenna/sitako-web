@@ -17,12 +17,13 @@ import {
 
 import Button from '@/components/common/Button.vue';
 import Input from '@/components/common/Input.vue';
-import Alert from '@/components/common/Alert.vue';
 import Badge, { type BadgeVariant } from '@/components/common/Badge.vue';
 import Card from '@/components/common/Card.vue';
 import Table from '@/components/tables/Table.vue';
 import { api } from '@/utils/axios';
 import { formatRupiah } from '@/utils/currency';
+import { getErrorMessage } from '@/utils/error';
+import { useToast } from '@/composables/useToast';
 import type { TableColumn, PaginationMeta } from '@/types/table';
 import type {
   CirculationReportItem,
@@ -31,16 +32,7 @@ import type {
   FineReportResponse,
 } from '@/types/report';
 
-// --- STATE: TOAST ---
-const toast = ref<{ type: 'success' | 'danger'; message: string } | null>(null);
-let toastTimeout: ReturnType<typeof setTimeout> | null = null;
-const showToast = (type: 'success' | 'danger', message: string) => {
-  toast.value = { type, message };
-  if (toastTimeout) clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(() => {
-    toast.value = null;
-  }, 4000);
-};
+const { showToast } = useToast();
 
 // --- STATE: TABS & FILTER TANGGAL ---
 const activeTab = ref<'circulation' | 'fines'>('circulation');
@@ -247,11 +239,10 @@ const downloadReport = async (format: 'csv' | 'xlsx' | 'pdf') => {
     window.URL.revokeObjectURL(url);
 
     showToast('success', `Laporan format ${format.toUpperCase()} berhasil diunduh!`);
-  } catch (error: any) {
-    console.error('Download report error:', error);
+  } catch (error: unknown) {
     showToast(
       'danger',
-      error.response?.data?.message || 'Gagal mengunduh berkas laporan. Silakan coba lagi.',
+      getErrorMessage(error, 'Gagal mengunduh berkas laporan. Silakan coba lagi.'),
     );
   } finally {
     isExporting.value = false;
@@ -315,22 +306,6 @@ const getPaymentBadge = (status: string): { label: string; variant: BadgeVariant
 
 <template>
   <div class="space-y-6">
-    <!-- TOAST NOTIFICATION -->
-    <Transition
-      enter-active-class="transform ease-out duration-300 transition"
-      enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
-      enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
-      leave-active-class="transition ease-in duration-100"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div v-if="toast" class="fixed top-5 right-5 z-50 max-w-sm w-full">
-        <Alert :type="toast.type" dismissible @close="toast = null">
-          {{ toast.message }}
-        </Alert>
-      </div>
-    </Transition>
-
     <!-- HEADER -->
     <div
       class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
@@ -352,7 +327,7 @@ const getPaymentBadge = (status: string): { label: string; variant: BadgeVariant
         <!-- Unduh Excel -->
         <Button
           variant="secondary"
-          class="!border-emerald-600 !text-emerald-700 hover:!bg-emerald-50 focus:!ring-emerald-500 text-sm font-medium"
+          class="border-emerald-600! text-emerald-700! hover:bg-emerald-50! focus:ring-emerald-500! text-sm font-medium"
           :loading="isExporting && exportingFormat === 'xlsx'"
           :disabled="isExporting"
           @click="downloadReport('xlsx')"
@@ -376,7 +351,7 @@ const getPaymentBadge = (status: string): { label: string; variant: BadgeVariant
         <!-- Unduh PDF -->
         <Button
           variant="primary"
-          class="!bg-rose-600 hover:!bg-rose-700 focus:!ring-rose-500 !text-white text-sm font-medium shadow-sm"
+          class="bg-rose-600! hover:bg-rose-700! focus:ring-rose-500! text-white! text-sm font-medium shadow-sm"
           :loading="isExporting && exportingFormat === 'pdf'"
           :disabled="isExporting"
           @click="downloadReport('pdf')"
@@ -497,8 +472,7 @@ const getPaymentBadge = (status: string): { label: string; variant: BadgeVariant
             <ArrowPathIcon
               class="w-5 h-5"
               :class="{
-                'animate-spin':
-                  activeTab === 'circulation' ? isCirculationLoading : isFinesLoading,
+                'animate-spin': activeTab === 'circulation' ? isCirculationLoading : isFinesLoading,
               }"
             />
           </button>
@@ -655,7 +629,9 @@ const getPaymentBadge = (status: string): { label: string; variant: BadgeVariant
     <div v-else class="space-y-4">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-bold text-gray-900">Preview Data Pembayaran Denda</h2>
-        <span class="text-xs text-gray-500"> Menampilkan {{ filteredFines.length }} baris data </span>
+        <span class="text-xs text-gray-500">
+          Menampilkan {{ filteredFines.length }} baris data
+        </span>
       </div>
 
       <Table

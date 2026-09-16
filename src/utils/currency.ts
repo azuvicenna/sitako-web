@@ -1,7 +1,4 @@
-export const formatRupiah = (
-  value?: number | string | null,
-  fallback = 'Rp 0',
-): string => {
+export const formatRupiah = (value?: number | string | null, fallback = 'Rp 0'): string => {
   if (value === null || value === undefined || value === '') {
     return fallback;
   }

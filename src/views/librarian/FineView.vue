@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
-import { useDebounceFn } from '@vueuse/core';
 import dayjs from 'dayjs';
 import {
   BanknotesIcon,
@@ -10,30 +9,29 @@ import {
   MagnifyingGlassIcon,
   PencilSquareIcon,
   TrashIcon,
-  CheckCircleIcon,
-  ExclamationCircleIcon,
   BookOpenIcon,
   UserIcon,
 } from '@heroicons/vue/24/outline';
 
 import Button from '@/components/common/Button.vue';
 import Input from '@/components/common/Input.vue';
-import Modal from '@/components/common/Modal.vue';
-import Alert from '@/components/common/Alert.vue';
 import Badge from '@/components/common/Badge.vue';
+import ConfirmModal from '@/components/common/ConfirmModal.vue';
 import Table from '@/components/tables/Table.vue';
+import FinePaymentModal from './components/FinePaymentModal.vue';
+import FineRuleModal from './components/FineRuleModal.vue';
+
 import { api } from '@/utils/axios';
 import { formatRupiah } from '@/utils/currency';
-import { useAuthStore } from '@/stores/auth';
-import {
-  createFineSchema,
-  updateFineSchema,
-} from '@/validations/librarian/fine.schema';
-import {
-  createFinePaymentSchema,
-  updateFinePaymentSchema,
-} from '@/validations/librarian/fine-payment.schema';
+import { getErrorMessage } from '@/utils/error';
+import { useToast } from '@/composables/useToast';
+import { usePaginationSearch } from '@/composables/usePaginationSearch';
+
 import type { TableColumn } from '@/types/table';
+import type { Book, BookListResponse } from '@/types/book';
+import type { MemberUser } from '@/types/auth';
+import type { MemberListResponse } from '@/types/user';
+import type { Transaction, TransactionListResponse } from '@/types/transaction';
 import type {
   FineRule,
   FinePayment,
@@ -41,48 +39,27 @@ import type {
   FinePaymentListResponse,
 } from '@/types/fine';
 
-const authStore = useAuthStore();
 const queryClient = useQueryClient();
+const { showToast } = useToast();
 
-// --- STATE: NOTIFIKASI TOAST ---
-const toast = ref<{ type: 'success' | 'danger'; message: string } | null>(null);
-let toastTimeout: ReturnType<typeof setTimeout> | null = null;
-const showToast = (type: 'success' | 'danger', message: string) => {
-  toast.value = { type, message };
-  if (toastTimeout) clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(() => {
-    toast.value = null;
-  }, 4000);
-};
-
-// --- STATE: TAB AKTIF & SEARCH ---
+// --- STATE: TAB AKTIF & SEARCH / PAGINASI ---
 const activeTab = ref<'payments' | 'rules'>('payments');
-const page = ref(1);
-const search = ref('');
-const debouncedSearch = ref('');
-
-const onSearchInput = useDebounceFn((val: string) => {
-  debouncedSearch.value = val;
-  page.value = 1;
-}, 300);
-
-const handleSearchChange = (val: string | number) => {
-  search.value = String(val);
-  onSearchInput(String(val));
-};
+const {
+  page,
+  search,
+  debouncedSearch,
+  handleSearchChange,
+  handlePageChange,
+  reset: resetSearch,
+} = usePaginationSearch();
 
 const handleTabChange = (tab: 'payments' | 'rules') => {
   activeTab.value = tab;
-  page.value = 1;
-  search.value = '';
-  debouncedSearch.value = '';
+  resetSearch();
 };
 
 // --- DATA PEMBAYARAN DENDA ---
-const {
-  data: paymentsResponse,
-  isLoading: isLoadingPayments,
-} = useQuery({
+const { data: paymentsResponse, isLoading: isLoadingPayments } = useQuery({
   queryKey: ['fine-payments', page, debouncedSearch],
   queryFn: async () => {
     const params = new URLSearchParams({
@@ -100,10 +77,7 @@ const payments = computed<FinePayment[]>(() => paymentsResponse.value?.data || [
 const paymentsMeta = computed(() => paymentsResponse.value?.meta || null);
 
 // --- DATA ATURAN DENDA ---
-const {
-  data: rulesResponse,
-  isLoading: isLoadingRules,
-} = useQuery({
+const { data: rulesResponse, isLoading: isLoadingRules } = useQuery({
   queryKey: ['fine-rules', page, debouncedSearch],
   queryFn: async () => {
     const params = new URLSearchParams({
@@ -120,35 +94,33 @@ const {
 const rules = computed<FineRule[]>(() => rulesResponse.value?.data || []);
 const rulesMeta = computed(() => rulesResponse.value?.meta || null);
 
-// Data master buku untuk pilihan dropdown
+// Data master dropdown
 const { data: booksResponse } = useQuery({
   queryKey: ['books-all-dropdown'],
   queryFn: async () => {
-    const res = await api.get('/books?limit=100');
+    const res = await api.get<BookListResponse>('/books?limit=100');
     return res.data;
   },
 });
-const availableBooks = computed<any[]>(() => booksResponse.value?.data || []);
+const availableBooks = computed<Book[]>(() => booksResponse.value?.data || []);
 
-// Data master anggota untuk pilihan dropdown pembayaran
 const { data: membersResponse } = useQuery({
   queryKey: ['members-dropdown'],
   queryFn: async () => {
-    const res = await api.get('/user/members/?statusActive=true&limit=100');
+    const res = await api.get<MemberListResponse>('/user/members/?statusActive=true&limit=100');
     return res.data;
   },
 });
-const availableMembers = computed<any[]>(() => membersResponse.value?.data || []);
+const availableMembers = computed<MemberUser[]>(() => membersResponse.value?.data || []);
 
-// Data transaksi peminjaman untuk pilihan dropdown pembayaran
 const { data: transactionsResponse } = useQuery({
   queryKey: ['transactions-dropdown'],
   queryFn: async () => {
-    const res = await api.get('/transactions/?status=Semua&limit=100');
+    const res = await api.get<TransactionListResponse>('/transactions/?status=Semua&limit=100');
     return res.data;
   },
 });
-const availableTransactions = computed<any[]>(() => transactionsResponse.value?.data || []);
+const availableTransactions = computed<Transaction[]>(() => transactionsResponse.value?.data || []);
 
 // --- KOLOM TABEL ---
 const paymentColumns: TableColumn<FinePayment>[] = [
@@ -169,242 +141,37 @@ const ruleColumns: TableColumn<FineRule>[] = [
   { key: 'actions', label: 'Aksi', align: 'right', width: 'w-24' },
 ];
 
-const handlePageChange = (newPage: number) => {
-  page.value = newPage;
-};
-
-// --- MODAL: PEMBAYARAN DENDA ---
+// --- MODAL STATES ---
 const isPaymentModalOpen = ref(false);
 const paymentModalMode = ref<'create' | 'edit'>('create');
-
-const paymentForm = reactive({
-  id: '',
-  transaksiId: '',
-  anggotaId: '',
-  pustakawanId: '',
-  hargaDenda: 1000,
-  totalDenda: 1000,
-  metodePembayaran: 'Tunai' as 'Tunai' | 'Non-Tunai',
-  paymentStatus: 'PAID' as 'UNPAID' | 'PAID' | 'EXPIRED' | 'FAILED',
-  tglBayar: dayjs().format('YYYY-MM-DD'),
-});
-
-const paymentErrors = ref<Record<string, string | undefined>>({});
+const selectedPayment = ref<FinePayment | null>(null);
 
 const openCreatePaymentModal = () => {
   paymentModalMode.value = 'create';
-  paymentForm.id = '';
-  paymentForm.transaksiId = '';
-  paymentForm.anggotaId = '';
-  paymentForm.pustakawanId = authStore.user?.id || '';
-  paymentForm.hargaDenda = 1000;
-  paymentForm.totalDenda = 1000;
-  paymentForm.metodePembayaran = 'Tunai';
-  paymentForm.paymentStatus = 'PAID';
-  paymentForm.tglBayar = dayjs().format('YYYY-MM-DD');
-  paymentErrors.value = {};
+  selectedPayment.value = null;
   isPaymentModalOpen.value = true;
 };
 
 const openEditPaymentModal = (item: FinePayment) => {
   paymentModalMode.value = 'edit';
-  paymentForm.id = item.id;
-  paymentForm.transaksiId = item.transaksiId || '';
-  paymentForm.anggotaId = item.anggotaId || '';
-  paymentForm.pustakawanId = item.pustakawanId || authStore.user?.id || '';
-  paymentForm.hargaDenda = item.hargaDenda;
-  paymentForm.totalDenda = item.totalDenda;
-  paymentForm.metodePembayaran = item.metodePembayaran;
-  paymentForm.paymentStatus = item.paymentStatus || 'PAID';
-  paymentForm.tglBayar = item.tglBayar ? dayjs(item.tglBayar).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD');
-  paymentErrors.value = {};
+  selectedPayment.value = item;
   isPaymentModalOpen.value = true;
 };
 
-const paymentMutation = useMutation({
-  mutationFn: async (payload: typeof paymentForm) => {
-    if (paymentModalMode.value === 'create') {
-      const res = await api.post('/fine-payments/', {
-        transaksiId: payload.transaksiId,
-        anggotaId: payload.anggotaId,
-        pustakawanId: payload.pustakawanId || authStore.user?.id,
-        hargaDenda: Number(payload.hargaDenda),
-        totalDenda: Number(payload.totalDenda),
-        metodePembayaran: payload.metodePembayaran,
-        tglBayar: new Date(payload.tglBayar).toISOString(),
-      });
-      return res.data;
-    } else {
-      const res = await api.put(`/fine-payments/${payload.id}`, {
-        totalDenda: Number(payload.totalDenda),
-        metodePembayaran: payload.metodePembayaran,
-        paymentStatus: payload.paymentStatus,
-      });
-      return res.data;
-    }
-  },
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['fine-payments'] });
-    isPaymentModalOpen.value = false;
-    showToast(
-      'success',
-      paymentModalMode.value === 'create'
-        ? 'Pembayaran denda berhasil dicatat!'
-        : 'Data pembayaran denda berhasil diperbarui!',
-    );
-  },
-  onError: (err: any) => {
-    showToast('danger', err.message || 'Gagal menyimpan pembayaran denda.');
-  },
-});
-
-const submitPaymentForm = () => {
-  paymentErrors.value = {};
-
-  if (paymentModalMode.value === 'create') {
-    const validation = createFinePaymentSchema.safeParse({
-      pustakawanId: paymentForm.pustakawanId || authStore.user?.id,
-      anggotaId: paymentForm.anggotaId,
-      transaksiId: paymentForm.transaksiId,
-      hargaDenda: Number(paymentForm.hargaDenda),
-      totalDenda: Number(paymentForm.totalDenda),
-      metodePembayaran: paymentForm.metodePembayaran,
-      tglBayar: new Date(paymentForm.tglBayar),
-    });
-
-    if (!validation.success) {
-      const errors = validation.error.flatten().fieldErrors;
-      paymentErrors.value = {
-        transaksiId: errors.transaksiId?.[0],
-        anggotaId: errors.anggotaId?.[0],
-        totalDenda: errors.totalDenda?.[0],
-        hargaDenda: errors.hargaDenda?.[0],
-      };
-      return;
-    }
-  } else {
-    const validation = updateFinePaymentSchema.safeParse({
-      totalDenda: Number(paymentForm.totalDenda),
-      metodePembayaran: paymentForm.metodePembayaran,
-      paymentStatus: paymentForm.paymentStatus,
-    });
-
-    if (!validation.success) {
-      const errors = validation.error.flatten().fieldErrors;
-      paymentErrors.value = {
-        totalDenda: errors.totalDenda?.[0],
-      };
-      return;
-    }
-  }
-
-  paymentMutation.mutate(paymentForm);
-};
-
-// --- MODAL: ATURAN DENDA ---
 const isRuleModalOpen = ref(false);
 const ruleModalMode = ref<'create' | 'edit'>('create');
-
-const ruleForm = reactive({
-  id: '',
-  bukuId: '',
-  jenisDenda: 'Terlambat' as 'Terlambat' | 'Hilang',
-  hargaDenda: 1000,
-  metodePerhitungan: 'Akumulasi' as 'Akumulasi' | 'Flat',
-});
-
-const ruleErrors = ref<Record<string, string | undefined>>({});
+const selectedRule = ref<FineRule | null>(null);
 
 const openCreateRuleModal = () => {
   ruleModalMode.value = 'create';
-  ruleForm.id = '';
-  ruleForm.bukuId = '';
-  ruleForm.jenisDenda = 'Terlambat';
-  ruleForm.hargaDenda = 1000;
-  ruleForm.metodePerhitungan = 'Akumulasi';
-  ruleErrors.value = {};
+  selectedRule.value = null;
   isRuleModalOpen.value = true;
 };
 
 const openEditRuleModal = (rule: FineRule) => {
   ruleModalMode.value = 'edit';
-  ruleForm.id = rule.id;
-  ruleForm.bukuId = rule.bukuId;
-  ruleForm.jenisDenda = rule.jenisDenda;
-  ruleForm.hargaDenda = rule.hargaDenda;
-  ruleForm.metodePerhitungan = rule.metodePerhitungan;
-  ruleErrors.value = {};
+  selectedRule.value = rule;
   isRuleModalOpen.value = true;
-};
-
-const ruleMutation = useMutation({
-  mutationFn: async (payload: typeof ruleForm) => {
-    if (ruleModalMode.value === 'create') {
-      const res = await api.post('/fines/', {
-        bukuId: payload.bukuId,
-        jenisDenda: payload.jenisDenda,
-        hargaDenda: Number(payload.hargaDenda),
-        metodePerhitungan: payload.metodePerhitungan,
-      });
-      return res.data;
-    } else {
-      const res = await api.put(`/fines/${payload.id}`, {
-        hargaDenda: Number(payload.hargaDenda),
-        metodePerhitungan: payload.metodePerhitungan,
-      });
-      return res.data;
-    }
-  },
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['fine-rules'] });
-    isRuleModalOpen.value = false;
-    showToast(
-      'success',
-      ruleModalMode.value === 'create'
-        ? 'Aturan denda baru berhasil disimpan!'
-        : 'Aturan denda berhasil diperbarui!',
-    );
-  },
-  onError: (err: any) => {
-    showToast('danger', err.message || 'Gagal menyimpan aturan denda.');
-  },
-});
-
-const submitRuleForm = () => {
-  ruleErrors.value = {};
-
-  if (ruleModalMode.value === 'create') {
-    const validation = createFineSchema.safeParse({
-      bukuId: ruleForm.bukuId,
-      jenisDenda: ruleForm.jenisDenda,
-      hargaDenda: Number(ruleForm.hargaDenda),
-      metodePerhitungan: ruleForm.metodePerhitungan,
-    });
-
-    if (!validation.success) {
-      const errors = validation.error.flatten().fieldErrors;
-      ruleErrors.value = {
-        bukuId: errors.bukuId?.[0],
-        hargaDenda: errors.hargaDenda?.[0],
-      };
-      return;
-    }
-  } else {
-    const validation = updateFineSchema.safeParse({
-      hargaDenda: Number(ruleForm.hargaDenda),
-      metodePerhitungan: ruleForm.metodePerhitungan,
-    });
-
-    if (!validation.success) {
-      const errors = validation.error.flatten().fieldErrors;
-      ruleErrors.value = {
-        hargaDenda: errors.hargaDenda?.[0],
-      };
-      return;
-    }
-  }
-
-  ruleMutation.mutate(ruleForm);
 };
 
 // --- MODAL: HAPUS ---
@@ -449,8 +216,8 @@ const deleteMutation = useMutation({
     }
     isDeleteModalOpen.value = false;
   },
-  onError: (err: any) => {
-    showToast('danger', err.message || 'Gagal menghapus data.');
+  onError: (err: unknown) => {
+    showToast('danger', getErrorMessage(err, 'Gagal menghapus data.'));
   },
 });
 
@@ -495,17 +262,6 @@ const confirmDelete = () => {
         Tambah Aturan Tarif
       </Button>
     </div>
-
-    <!-- Alert / Toast Banner -->
-    <Transition name="fade">
-      <Alert
-        v-if="toast"
-        :variant="toast.type === 'success' ? 'success' : 'danger'"
-        :icon="toast.type === 'success' ? CheckCircleIcon : ExclamationCircleIcon"
-        :title="toast.type === 'success' ? 'Berhasil' : 'Perhatian'"
-        :description="toast.message"
-      />
-    </Transition>
 
     <!-- Toolbar: Tabs Switcher & Search -->
     <div
@@ -586,7 +342,7 @@ const confirmDelete = () => {
             </span>
             <div class="flex items-center gap-1.5 text-[11px] text-gray-500">
               <BookOpenIcon class="w-3.5 h-3.5 text-gray-400 shrink-0" />
-              <span class="truncate max-w-[200px]">{{ item.judulBuku || '-' }}</span>
+              <span class="truncate max-w-50">{{ item.judulBuku || '-' }}</span>
             </div>
           </div>
         </template>
@@ -594,12 +350,18 @@ const confirmDelete = () => {
         <!-- Cell Anggota -->
         <template #cell-anggota="{ item }">
           <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 text-xs font-bold">
+            <div
+              class="w-7 h-7 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 text-xs font-bold"
+            >
               <UserIcon class="w-4 h-4" />
             </div>
             <div>
-              <p class="font-semibold text-charcoalDark text-xs">{{ item.namaAnggota || item.anggotaId }}</p>
-              <p v-if="item.namaPustakawan" class="text-[10px] text-gray-400">Pencatat: {{ item.namaPustakawan }}</p>
+              <p class="font-semibold text-charcoalDark text-xs">
+                {{ item.namaAnggota || item.anggotaId }}
+              </p>
+              <p v-if="item.namaPustakawan" class="text-[10px] text-gray-400">
+                Pencatat: {{ item.namaPustakawan }}
+              </p>
             </div>
           </div>
         </template>
@@ -610,7 +372,9 @@ const confirmDelete = () => {
             <span class="font-bold text-sm text-charcoalDark block leading-none">
               {{ formatRupiah(item.totalDenda) }}
             </span>
-            <span class="text-[10px] text-gray-400">Tarif: {{ formatRupiah(item.hargaDenda) }}</span>
+            <span class="text-[10px] text-gray-400"
+              >Tarif: {{ formatRupiah(item.hargaDenda) }}</span
+            >
           </div>
         </template>
 
@@ -624,7 +388,9 @@ const confirmDelete = () => {
               v-if="item.paymentStatus"
               :class="[
                 'text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded',
-                item.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                item.paymentStatus === 'PAID'
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800',
               ]"
             >
               {{ item.paymentStatus }}
@@ -635,7 +401,11 @@ const confirmDelete = () => {
         <!-- Cell Tanggal Bayar -->
         <template #cell-tglBayar="{ item }">
           <span class="text-xs text-gray-500">
-            {{ item.tglBayar ? dayjs(item.tglBayar).format('DD MMM YYYY, HH:mm') : dayjs(item.createdAt).format('DD MMM YYYY') }}
+            {{
+              item.tglBayar
+                ? dayjs(item.tglBayar).format('DD MMM YYYY, HH:mm')
+                : dayjs(item.createdAt).format('DD MMM YYYY')
+            }}
           </span>
         </template>
 
@@ -676,7 +446,9 @@ const confirmDelete = () => {
         <!-- Cell Buku -->
         <template #cell-judulBuku="{ item }">
           <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-amber-50 text-mustardHover flex items-center justify-center shrink-0">
+            <div
+              class="w-8 h-8 rounded-lg bg-amber-50 text-mustardHover flex items-center justify-center shrink-0"
+            >
               <BookOpenIcon class="w-4 h-4" />
             </div>
             <div>
@@ -709,7 +481,7 @@ const confirmDelete = () => {
               'inline-block px-2 py-0.5 rounded text-xs font-semibold',
               item.metodePerhitungan === 'Akumulasi'
                 ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                : 'bg-purple-50 text-purple-700 border border-purple-200'
+                : 'bg-purple-50 text-purple-700 border border-purple-200',
             ]"
           >
             {{ item.metodePerhitungan === 'Akumulasi' ? 'Akumulasi (Per Hari)' : 'Tarif Flat' }}
@@ -748,296 +520,29 @@ const confirmDelete = () => {
     </div>
 
     <!-- MODAL CATAT / EDIT PEMBAYARAN DENDA -->
-    <Modal
+    <FinePaymentModal
       v-model="isPaymentModalOpen"
-      :title="paymentModalMode === 'create' ? 'Catat Pembayaran Denda Tunai' : 'Ubah Data Pembayaran Denda'"
-      :description="
-        paymentModalMode === 'create'
-          ? 'Catat pembayaran denda secara langsung (tunai) di meja sirkulasi perpustakaan.'
-          : 'Perbarui rincian atau status verifikasi pembayaran denda.'
-      "
-      :icon="BanknotesIcon"
-      size="lg"
-    >
-      <form @submit.prevent="submitPaymentForm" class="space-y-4 pt-1">
-        <!-- Transaksi Terkait (Jika Create) -->
-        <div v-if="paymentModalMode === 'create'">
-          <label class="block text-xs font-bold text-charcoalDark mb-1">
-            Pilih Transaksi Sirkulasi <span class="text-red-500">*</span>
-          </label>
-          <select
-            v-model="paymentForm.transaksiId"
-            :disabled="paymentMutation.isPending.value"
-            class="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-charcoal focus:outline-none focus:border-mustard focus:ring-1 focus:ring-mustard"
-          >
-            <option value="" disabled>-- Pilih Transaksi --</option>
-            <option
-              v-for="trx in availableTransactions"
-              :key="trx.id"
-              :value="trx.id"
-            >
-              {{ trx.kdTransaksi }} - {{ trx.namaAnggota }} ({{ trx.judulBuku }})
-            </option>
-          </select>
-          <p v-if="paymentErrors.transaksiId" class="text-xs text-red-500 mt-0.5 font-medium">
-            {{ paymentErrors.transaksiId }}
-          </p>
-        </div>
-
-        <!-- Anggota Terkait (Jika Create) -->
-        <div v-if="paymentModalMode === 'create'">
-          <label class="block text-xs font-bold text-charcoalDark mb-1">
-            Anggota / Siswa <span class="text-red-500">*</span>
-          </label>
-          <select
-            v-model="paymentForm.anggotaId"
-            :disabled="paymentMutation.isPending.value"
-            class="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-charcoal focus:outline-none focus:border-mustard focus:ring-1 focus:ring-mustard"
-          >
-            <option value="" disabled>-- Pilih Anggota --</option>
-            <option
-              v-for="mem in availableMembers"
-              :key="mem.id"
-              :value="mem.id"
-            >
-              {{ mem.nama }} (NIS: {{ mem.nis }})
-            </option>
-          </select>
-          <p v-if="paymentErrors.anggotaId" class="text-xs text-red-500 mt-0.5 font-medium">
-            {{ paymentErrors.anggotaId }}
-          </p>
-        </div>
-
-        <!-- Grid Nominal -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-charcoalDark mb-1">
-              Tarif Dasar Denda (Rp) <span class="text-red-500">*</span>
-            </label>
-            <Input
-              type="number"
-              v-model="paymentForm.hargaDenda"
-              placeholder="1000"
-              :disabled="paymentMutation.isPending.value"
-            />
-            <p v-if="paymentErrors.hargaDenda" class="text-xs text-red-500 mt-0.5 font-medium">
-              {{ paymentErrors.hargaDenda }}
-            </p>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-charcoalDark mb-1">
-              Total Denda Diterima (Rp) <span class="text-red-500">*</span>
-            </label>
-            <Input
-              type="number"
-              v-model="paymentForm.totalDenda"
-              placeholder="1000"
-              :disabled="paymentMutation.isPending.value"
-            />
-            <p v-if="paymentErrors.totalDenda" class="text-xs text-red-500 mt-0.5 font-medium">
-              {{ paymentErrors.totalDenda }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Grid Metode & Status (Jika Edit) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-charcoalDark mb-1">
-              Metode Pembayaran
-            </label>
-            <select
-              v-model="paymentForm.metodePembayaran"
-              :disabled="paymentMutation.isPending.value"
-              class="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-charcoal focus:outline-none focus:border-mustard focus:ring-1 focus:ring-mustard"
-            >
-              <option value="Tunai">Tunai (Di Perpustakaan)</option>
-              <option value="Non-Tunai">Non-Tunai (Tripay Gateway)</option>
-            </select>
-          </div>
-
-          <div v-if="paymentModalMode === 'edit'">
-            <label class="block text-xs font-bold text-charcoalDark mb-1">
-              Status Pembayaran
-            </label>
-            <select
-              v-model="paymentForm.paymentStatus"
-              :disabled="paymentMutation.isPending.value"
-              class="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-charcoal focus:outline-none focus:border-mustard focus:ring-1 focus:ring-mustard"
-            >
-              <option value="PAID">Lunas (PAID)</option>
-              <option value="UNPAID">Belum Dibayar (UNPAID)</option>
-              <option value="EXPIRED">Kedaluwarsa (EXPIRED)</option>
-              <option value="FAILED">Gagal (FAILED)</option>
-            </select>
-          </div>
-
-          <div v-else>
-            <label class="block text-xs font-bold text-charcoalDark mb-1">
-              Tanggal Pembayaran
-            </label>
-            <Input
-              type="date"
-              v-model="paymentForm.tglBayar"
-              :disabled="paymentMutation.isPending.value"
-            />
-          </div>
-        </div>
-      </form>
-
-      <template #footer="{ close }">
-        <Button
-          variant="secondary"
-          @click="close"
-          :disabled="paymentMutation.isPending.value"
-        >
-          Batal
-        </Button>
-        <Button
-          variant="primary"
-          @click="submitPaymentForm"
-          :disabled="paymentMutation.isPending.value"
-        >
-          {{ paymentMutation.isPending.value ? 'Menyimpan...' : 'Simpan Pembayaran' }}
-        </Button>
-      </template>
-    </Modal>
+      :mode="paymentModalMode"
+      :payment="selectedPayment"
+      :available-transactions="availableTransactions"
+      :available-members="availableMembers"
+    />
 
     <!-- MODAL TAMBAH / EDIT ATURAN DENDA -->
-    <Modal
+    <FineRuleModal
       v-model="isRuleModalOpen"
-      :title="ruleModalMode === 'create' ? 'Tambah Aturan Tarif Denda' : 'Ubah Aturan Tarif Denda'"
-      :description="
-        ruleModalMode === 'create'
-          ? 'Tentukan besaran nominal tarif denda dan metode perhitungan per buku.'
-          : 'Perbarui besaran tarif denda atau metode perhitungannya.'
-      "
-      :icon="Cog6ToothIcon"
-      size="md"
-    >
-      <form @submit.prevent="submitRuleForm" class="space-y-4 pt-1">
-        <div v-if="ruleModalMode === 'create'">
-          <label class="block text-xs font-bold text-charcoalDark mb-1">
-            Pilih Buku <span class="text-red-500">*</span>
-          </label>
-          <select
-            v-model="ruleForm.bukuId"
-            :disabled="ruleMutation.isPending.value"
-            class="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-charcoal focus:outline-none focus:border-mustard focus:ring-1 focus:ring-mustard"
-          >
-            <option value="" disabled>-- Pilih Buku --</option>
-            <option
-              v-for="buku in availableBooks"
-              :key="buku.id"
-              :value="buku.id"
-            >
-              {{ buku.judul }} ({{ buku.isbn || 'No ISBN' }})
-            </option>
-          </select>
-          <p v-if="ruleErrors.bukuId" class="text-xs text-red-500 mt-0.5 font-medium">
-            {{ ruleErrors.bukuId }}
-          </p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-charcoalDark mb-1">
-            Jenis Pelanggaran Denda <span class="text-red-500">*</span>
-          </label>
-          <select
-            v-model="ruleForm.jenisDenda"
-            :disabled="ruleMutation.isPending.value"
-            class="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-charcoal focus:outline-none focus:border-mustard focus:ring-1 focus:ring-mustard"
-          >
-            <option value="Terlambat">Keterlambatan Pengembalian</option>
-            <option value="Hilang">Buku Hilang / Rusak Berat</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-charcoalDark mb-1">
-            Nomor Tarif Denda (Rp) <span class="text-red-500">*</span>
-          </label>
-          <Input
-            type="number"
-            v-model="ruleForm.hargaDenda"
-            placeholder="Contoh: 1000"
-            :disabled="ruleMutation.isPending.value"
-          />
-          <p v-if="ruleErrors.hargaDenda" class="text-xs text-red-500 mt-0.5 font-medium">
-            {{ ruleErrors.hargaDenda }}
-          </p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-charcoalDark mb-1">
-            Metode Perhitungan <span class="text-red-500">*</span>
-          </label>
-          <select
-            v-model="ruleForm.metodePerhitungan"
-            :disabled="ruleMutation.isPending.value"
-            class="block w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-charcoal focus:outline-none focus:border-mustard focus:ring-1 focus:ring-mustard"
-          >
-            <option value="Akumulasi">Akumulasi (Dikalikan per hari keterlambatan)</option>
-            <option value="Flat">Flat (Tarif tetap satu kali bayar)</option>
-          </select>
-        </div>
-      </form>
-
-      <template #footer="{ close }">
-        <Button
-          variant="secondary"
-          @click="close"
-          :disabled="ruleMutation.isPending.value"
-        >
-          Batal
-        </Button>
-        <Button
-          variant="primary"
-          @click="submitRuleForm"
-          :disabled="ruleMutation.isPending.value"
-        >
-          {{ ruleMutation.isPending.value ? 'Menyimpan...' : 'Simpan Aturan' }}
-        </Button>
-      </template>
-    </Modal>
+      :mode="ruleModalMode"
+      :rule="selectedRule"
+      :available-books="availableBooks"
+    />
 
     <!-- MODAL KONFIRMASI HAPUS -->
-    <Modal
+    <ConfirmModal
       v-model="isDeleteModalOpen"
       title="Konfirmasi Hapus"
       :description="`Apakah Anda yakin ingin menghapus data '${itemToDelete?.label}'? Tindakan ini tidak dapat dibatalkan.`"
-      :icon="TrashIcon"
-      icon-variant="danger"
-      size="md"
-    >
-      <template #footer="{ close }">
-        <Button
-          variant="secondary"
-          @click="close"
-          :disabled="deleteMutation.isPending.value"
-        >
-          Batal
-        </Button>
-        <Button
-          variant="dark"
-          @click="confirmDelete"
-          :disabled="deleteMutation.isPending.value"
-        >
-          {{ deleteMutation.isPending.value ? 'Menghapus...' : 'Ya, Hapus' }}
-        </Button>
-      </template>
-    </Modal>
+      :loading="deleteMutation.isPending.value"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

@@ -151,7 +151,8 @@ router.beforeEach(async (to, _from, next) => {
 
   const matchedAuth = to.matched.find((record) => record.meta.requiresAuth);
   const requiresAuth = !!matchedAuth;
-  const allowedRoles = (to.meta.roles as UserRole[] | undefined) ||
+  const allowedRoles =
+    (to.meta.roles as UserRole[] | undefined) ||
     (matchedAuth?.meta.roles as UserRole[] | undefined);
 
   if (!requiresAuth) {
