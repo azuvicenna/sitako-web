@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Menambahkan Pinia store auth dan composables useAuth tersinkronisasi backend
 - Menambahkan skema validasi form (Zod) untuk modul auth, librarian, dan member
 - Menambahkan konfigurasi server proxy Vite ke backend port 8080
+- Menambahkan halaman untuk pustakawan
+- Menambahkan halaman untuk anggota
 
 ### [2026-09-15]
 
