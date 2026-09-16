@@ -7,8 +7,8 @@ export interface PaginationMeta {
   hasPrevPage: boolean;
 }
 
-export interface TableColumn<_T = any> {
-  key: string;
+export interface TableColumn<T = Record<string, unknown>> {
+  key: (keyof T & string) | string;
   label: string;
   align?: 'left' | 'center' | 'right';
   width?: string;

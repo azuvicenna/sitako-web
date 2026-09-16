@@ -7,8 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### [2026-09-16]
+
+#### Added
+
+- Menambahkan utils axios, date, currency (formatRupiah), dan image compression
+- Menambahkan Pinia store auth dan composables useAuth tersinkronisasi backend
+- Menambahkan skema validasi form (Zod) untuk modul auth, librarian, dan member
+- Menambahkan konfigurasi server proxy Vite ke backend port 8080
+
 ### [2026-09-15]
 
 #### Added
 
-- Slicing components common
+- Slicing common components
