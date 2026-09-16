@@ -1,30 +1,68 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import {
   BookOpenIcon,
-  Squares2X2Icon,
-  ArchiveBoxIcon,
-  BanknotesIcon,
-  UsersIcon,
-  UserGroupIcon,
-  ArrowUpCircleIcon,
-  ArrowDownCircleIcon,
-  DocumentTextIcon,
   ArrowLeftStartOnRectangleIcon,
 } from '@heroicons/vue/24/outline';
 
 import Button from '@/components/common/Button.vue';
 import Modal from '@/components/common/Modal.vue';
+import { useAuthStore } from '@/stores/auth';
+import { useAuth } from '@/composables/useAuth';
+import { sidebarMenuGroups } from '@/data/sidebar-menu';
 
 defineProps<{
   isOpen: boolean;
 }>();
 
+const route = useRoute();
+const router = useRouter();
+const authStore = useAuthStore();
+const { logoutAsync } = useAuth();
+
 const isLogoutModalOpen = ref(false);
 
-const handleLogout = () => {
+const handleLogout = async () => {
   isLogoutModalOpen.value = false;
-  // Logika logout bisa ditambahkan di sini
+  try {
+    await logoutAsync();
+  } catch (error) {
+    console.error('Logout error:', error);
+  } finally {
+    router.push('/login');
+  }
+};
+
+const activeRole = computed(() => {
+  if (authStore.role) return authStore.role;
+  return route.path.startsWith('/anggota') ? 'Anggota' : 'Pustakawan';
+});
+
+const filteredMenuGroups = computed(() => {
+  const currentRole = activeRole.value;
+
+  return sidebarMenuGroups
+    .filter((group) => {
+      if (group.roles && group.roles.length > 0) {
+        return currentRole ? group.roles.includes(currentRole) : false;
+      }
+      return true;
+    })
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => {
+        if (item.roles && item.roles.length > 0) {
+          return currentRole ? item.roles.includes(currentRole) : false;
+        }
+        return true;
+      }),
+    }))
+    .filter((group) => group.items.length > 0);
+});
+
+const isRouteActive = (path: string) => {
+  return route.path === path;
 };
 </script>
 
@@ -50,93 +88,39 @@ const handleLogout = () => {
     </div>
 
     <div class="flex-1 overflow-y-auto py-4 w-64">
-      <div class="mb-6 px-4">
-        <p class="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-          Ringkasan
-        </p>
-        <router-link
-          to="/pustakawan/dashboard"
-          class="flex items-center gap-3 px-3 py-2.5 bg-mustard rounded-lg text-charcoalDark font-bold shadow-sm text-[13px]"
+      <div
+        v-for="group in filteredMenuGroups"
+        :key="group.title"
+        class="mb-6 px-4 last:mb-0"
+      >
+        <p
+          v-if="group.title"
+          class="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2"
         >
-          <Squares2X2Icon class="w-5 h-5 shrink-0" />
-          <span class="truncate">Dashboard Pustakawan</span>
-        </router-link>
-      </div>
-
-      <div class="mb-6 px-4">
-        <p class="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-          Master Data
+          {{ group.title }}
         </p>
         <div class="space-y-1">
           <router-link
-            to="/rak"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-charcoal hover:bg-gray-100 font-medium transition-colors text-[13px]"
+            v-for="item in group.items"
+            :key="item.path"
+            :to="item.path"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] transition-colors"
+            :class="[
+              isRouteActive(item.path)
+                ? 'bg-mustard text-charcoalDark font-bold shadow-sm'
+                : 'text-charcoal hover:bg-gray-100 font-medium',
+            ]"
           >
-            <ArchiveBoxIcon class="w-5 h-5 shrink-0" />
-            <span class="truncate">Kelola Rak Buku</span>
-          </router-link>
-          <router-link
-            to="/buku"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-charcoal hover:bg-gray-100 font-medium transition-colors text-[13px]"
-          >
-            <BookOpenIcon class="w-5 h-5 shrink-0" />
-            <span class="truncate">Kelola Buku Perpustakaan</span>
-          </router-link>
-          <router-link
-            to="/denda"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-charcoal hover:bg-gray-100 font-medium transition-colors text-[13px]"
-          >
-            <BanknotesIcon class="w-5 h-5 shrink-0" />
-            <span class="truncate">Kelola Denda Buku</span>
-          </router-link>
-          <router-link
-            to="/anggota"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-charcoal hover:bg-gray-100 font-medium transition-colors text-[13px]"
-          >
-            <UsersIcon class="w-5 h-5 shrink-0" /> <span class="truncate">Daftar Anggota</span>
-          </router-link>
-          <router-link
-            to="/pustakawan"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-charcoal hover:bg-gray-100 font-medium transition-colors text-[13px]"
-          >
-            <UserGroupIcon class="w-5 h-5 shrink-0" />
-            <span class="truncate">Daftar Pustakawan</span>
+            <component :is="item.icon" class="w-5 h-5 shrink-0" />
+            <span class="truncate">{{ item.title }}</span>
+            <span
+              v-if="item.badge"
+              class="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-charcoal/10 font-bold"
+            >
+              {{ item.badge }}
+            </span>
           </router-link>
         </div>
-      </div>
-
-      <div class="mb-6 px-4">
-        <p class="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-          Layanan Sirkulasi
-        </p>
-        <div class="space-y-1">
-          <router-link
-            to="/peminjaman"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-charcoal hover:bg-gray-100 font-medium transition-colors text-[13px]"
-          >
-            <ArrowUpCircleIcon class="w-5 h-5 shrink-0" />
-            <span class="truncate">Daftar Peminjaman</span>
-          </router-link>
-          <router-link
-            to="/pengembalian"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-charcoal hover:bg-gray-100 font-medium transition-colors text-[13px]"
-          >
-            <ArrowDownCircleIcon class="w-5 h-5 shrink-0" />
-            <span class="truncate">Daftar Pengembalian</span>
-          </router-link>
-        </div>
-      </div>
-
-      <div class="px-4">
-        <p class="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-          Cetak Laporan
-        </p>
-        <router-link
-          to="/laporan"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-charcoal hover:bg-gray-100 font-medium transition-colors text-[13px]"
-        >
-          <DocumentTextIcon class="w-5 h-5 shrink-0" /> <span class="truncate">Buat Laporan</span>
-        </router-link>
       </div>
     </div>
 
