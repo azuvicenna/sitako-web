@@ -4,7 +4,7 @@
 
 SITAKO (Sistem Informasi Perpustakaan Sekolah) Web adalah aplikasi antarmuka pengguna berbasis web (*Single Page Application* - SPA) untuk sistem manajemen perpustakaan sekolah. Proyek ini dibangun menggunakan Vue 3, TypeScript, dan Tailwind CSS v4, serta dirancang untuk memberikan pengalaman pengguna yang cepat, intuitif, dan responsif bagi staf perpustakaan maupun anggota (siswa dan guru).
 
-Aplikasi ini terhubung secara langsung dengan [SITAKO Backend](https://github.com/azuvicenna/sitako-backend) melalui RESTful API dan mendukung sistem otentikasi berbasis peran (*Role-Based Access Control* - RBAC) dengan dua portal utama:
+Aplikasi ini terhubung secara langsung dengan [SITAKO Server](https://github.com/azuvicenna/sitako-server) melalui RESTful API dan mendukung sistem otentikasi berbasis peran (*Role-Based Access Control* - RBAC) dengan dua portal utama:
 
 1. **Portal Pustakawan**:
    - **Dashboard Analitik**: Ringkasan statistik operasional harian (peminjaman aktif, buku terlambat, denda tertunda, dan statistik buku terpopuler).
@@ -41,7 +41,7 @@ Berikut adalah teknologi inti yang digunakan pada proyek frontend ini beserta fu
 - **Cypress**: Framework *End-to-End* (E2E) testing untuk simulasi pengujian otomatis alur interaksi pengguna nyata di browser.
 - **Oxlint & ESLint & Prettier**: Toolchain kualitas kode modern yang menggabungkan linter berbasis Rust super cepat (Oxlint), ESLint dengan aturan Vue/TypeScript, serta Prettier untuk pemformatan kode otomatis.
 - **Docker & Nginx**: Multi-stage Docker container yang mengkompilasi aset Vue 3 dan menyajikannya lewat Nginx 1.27 Alpine berkinerja tinggi dengan kompresi Gzip, caching aset statis, dan fallback routing SPA.
-- **Kubernetes (K3s)**: Konfigurasi orkestrasi container menggunakan Kubernetes Deployment, Service (ClusterIP), dan Traefik Ingress terpadu berdampingan dengan SITAKO Backend.
+- **Kubernetes (K3s)**: Konfigurasi orkestrasi container menggunakan Kubernetes Deployment, Service (ClusterIP), dan Traefik Ingress terpadu berdampingan dengan SITAKO Server.
 - **Progressive Web App (PWA) & Workbox**: Dukungan instalasi langsung (*installable*) di perangkat seluler dan desktop, Service Worker otomatis (`sw.js`), precaching aset statis dengan Workbox, dan pembaruan aplikasi instan (*auto-update*).
 
 ---
