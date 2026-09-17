@@ -80,7 +80,7 @@ const initForm = () => {
     form.email = props.librarian.email;
     form.telepon = props.librarian.telepon;
     form.status_aktif = props.librarian.status_aktif;
-    form.fotoPreview = props.librarian.foto;
+    form.fotoPreview = props.librarian.foto || '';
   }
 };
 

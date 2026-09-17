@@ -5,9 +5,16 @@ export interface BaseUser {
   nama: string;
   email: string;
   telepon: string;
-  foto: string;
+  foto: string | null;
   status_aktif: boolean;
   createdAt: string;
+}
+
+export interface UpdateProfilePayload {
+  nama?: string;
+  email?: string;
+  telepon?: string;
+  password?: string;
 }
 
 export interface LibrarianUser extends BaseUser {

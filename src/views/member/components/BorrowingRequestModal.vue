@@ -9,6 +9,7 @@ import Alert from '@/components/common/Alert.vue';
 import { api } from '@/utils/axios';
 import { getErrorMessage } from '@/utils/error';
 import { useToast } from '@/composables/useToast';
+import { createMemberTransactionSchema } from '@/validations';
 import type { CatalogBookItem } from '@/types/member-catalog';
 import type { LibrarianUser } from '@/types/auth';
 
@@ -79,20 +80,34 @@ const handleClose = () => {
 const submitBorrowForm = async () => {
   borrowErrors.value = {};
 
-  if (!borrowForm.bukuId) {
-    borrowErrors.value.bukuId = 'Buku fisik wajib dipilih';
-  }
-  if (!borrowForm.pustakawanId) {
-    borrowErrors.value.pustakawanId = 'Petugas pustakawan wajib dipilih';
-  }
-  if (!borrowForm.tglPinjam) {
-    borrowErrors.value.tglPinjam = 'Tanggal pinjam wajib diisi';
-  }
-  if (!borrowForm.tglKembali) {
-    borrowErrors.value.tglKembali = 'Tanggal kembali wajib diisi';
+  const validation = createMemberTransactionSchema.safeParse({
+    bukuId: borrowForm.bukuId,
+    pustakawanId: borrowForm.pustakawanId,
+    tglPinjam: borrowForm.tglPinjam ? new Date(borrowForm.tglPinjam) : undefined,
+    tglKembali: borrowForm.tglKembali ? new Date(borrowForm.tglKembali) : undefined,
+    status: 'Menunggu Persetujuan',
+  });
+
+  const errors: Record<string, string> = {};
+  if (!validation.success) {
+    const fieldErrors = validation.error.flatten().fieldErrors;
+    if (fieldErrors.bukuId?.[0]) errors.bukuId = fieldErrors.bukuId[0];
+    if (fieldErrors.pustakawanId?.[0]) errors.pustakawanId = fieldErrors.pustakawanId[0];
+    if (fieldErrors.tglPinjam?.[0]) errors.tglPinjam = fieldErrors.tglPinjam[0];
+    if (fieldErrors.tglKembali?.[0]) errors.tglKembali = fieldErrors.tglKembali[0];
   }
 
-  if (Object.keys(borrowErrors.value).length > 0) return;
+  if (!borrowForm.tglPinjam) {
+    errors.tglPinjam = 'Tanggal pinjam wajib diisi';
+  }
+  if (!borrowForm.tglKembali) {
+    errors.tglKembali = 'Tanggal kembali wajib diisi';
+  }
+
+  if (Object.keys(errors).length > 0) {
+    borrowErrors.value = errors;
+    return;
+  }
 
   isSubmitting.value = true;
   try {
@@ -179,6 +194,9 @@ const submitBorrowForm = async () => {
             v-model="borrowForm.tglPinjam"
             class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-mustard focus:border-mustard outline-none transition"
           />
+          <p v-if="borrowErrors.tglPinjam" class="text-xs text-rose-500 mt-1">
+            {{ borrowErrors.tglPinjam }}
+          </p>
         </div>
 
         <div>
@@ -190,6 +208,9 @@ const submitBorrowForm = async () => {
             v-model="borrowForm.tglKembali"
             class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-mustard focus:border-mustard outline-none transition"
           />
+          <p v-if="borrowErrors.tglKembali" class="text-xs text-rose-500 mt-1">
+            {{ borrowErrors.tglKembali }}
+          </p>
         </div>
       </div>
 

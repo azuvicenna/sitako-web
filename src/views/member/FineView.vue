@@ -68,26 +68,6 @@ const {
 const payments = computed<MemberFinePaymentItem[]>(() => finePaymentsResponse.value?.data || []);
 const meta = computed<PaginationMeta | null>(() => finePaymentsResponse.value?.meta || null);
 
-// --- QUERY TRANSAKSI YANG TERKENA DENDA (TERLAMBAT / TIDAK MENGEMBALIKAN) ---
-const { data: penaltyTransactionsResponse } = useQuery({
-  queryKey: ['member-penalty-transactions'],
-  queryFn: async () => {
-    const [resLate, resLost] = await Promise.all([
-      api.get<MemberTransactionListResponse>('/member/transactions/?status=Terlambat&limit=50'),
-      api.get<MemberTransactionListResponse>(
-        '/member/transactions/?status=Tidak Mengembalikan&limit=50',
-      ),
-    ]);
-    const lateData = resLate.data?.data || [];
-    const lostData = resLost.data?.data || [];
-    return [...lateData, ...lostData];
-  },
-});
-
-const penaltyTransactions = computed<MemberTransactionItem[]>(
-  () => penaltyTransactionsResponse.value || [],
-);
-
 // --- MODAL STATES ---
 const isPayModalOpen = ref(false);
 const openPayModal = () => {
@@ -101,6 +81,28 @@ const openDetailModal = (paymentId: string) => {
   selectedPaymentId.value = paymentId;
   isDetailModalOpen.value = true;
 };
+
+// --- QUERY TRANSAKSI YANG TERKENA DENDA (TERLAMBAT / TIDAK MENGEMBALIKAN) ---
+// Lazy-load: hanya dieksekusi saat modal bayar dibuka untuk menghemat request
+const { data: penaltyTransactionsResponse, isLoading: isLoadingPenalty } = useQuery({
+  queryKey: ['member-penalty-transactions'],
+  queryFn: async () => {
+    const [resLate, resLost] = await Promise.all([
+      api.get<MemberTransactionListResponse>('/member/transactions/?status=Terlambat&limit=50'),
+      api.get<MemberTransactionListResponse>(
+        '/member/transactions/?status=Tidak Mengembalikan&limit=50',
+      ),
+    ]);
+    const lateData = resLate.data?.data || [];
+    const lostData = resLost.data?.data || [];
+    return [...lateData, ...lostData];
+  },
+  enabled: computed(() => isPayModalOpen.value),
+});
+
+const penaltyTransactions = computed<MemberTransactionItem[]>(
+  () => penaltyTransactionsResponse.value || [],
+);
 
 // Kolom tabel
 const columns: TableColumn<MemberFinePaymentItem>[] = [
@@ -328,7 +330,11 @@ const columns: TableColumn<MemberFinePaymentItem>[] = [
     </Card>
 
     <!-- MODAL BAYAR DENDA ONLINE TRIPAY -->
-    <FinePaymentOnlineModal v-model="isPayModalOpen" :penalty-transactions="penaltyTransactions" />
+    <FinePaymentOnlineModal
+      v-model="isPayModalOpen"
+      :penalty-transactions="penaltyTransactions"
+      :loading="isLoadingPenalty"
+    />
 
     <!-- MODAL DETAIL PEMBAYARAN DENDA -->
     <FinePaymentDetailModal v-model="isDetailModalOpen" :payment-id="selectedPaymentId" />

@@ -10,17 +10,20 @@ import { api } from '@/utils/axios';
 import { formatRupiah } from '@/utils/currency';
 import { getErrorMessage } from '@/utils/error';
 import { useToast } from '@/composables/useToast';
+import { initiateOnlinePaymentSchema } from '@/validations';
 import type { InitiatePaymentResponse } from '@/types/member-fine';
 import type { MemberTransactionItem } from '@/types/member-transaction';
 
 interface Props {
   modelValue: boolean;
   penaltyTransactions?: MemberTransactionItem[];
+  loading?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: false,
   penaltyTransactions: () => [],
+  loading: false,
 });
 
 const emit = defineEmits<{
@@ -65,6 +68,15 @@ watch(
   { immediate: true },
 );
 
+watch(
+  () => props.penaltyTransactions,
+  (list) => {
+    if (list && list.length > 0 && !payForm.transaksiId && list[0]) {
+      payForm.transaksiId = list[0].id;
+    }
+  },
+);
+
 const handleClose = () => {
   emit('update:modelValue', false);
   paymentResult.value = null;
@@ -73,21 +85,26 @@ const handleClose = () => {
 const submitPayment = async () => {
   payErrors.value = {};
 
-  if (!payForm.transaksiId) {
-    payErrors.value.transaksiId = 'Transaksi yang terkena denda wajib dipilih';
-  }
-  if (!payForm.paymentMethodCode) {
-    payErrors.value.paymentMethodCode = 'Metode pembayaran wajib dipilih';
-  }
+  const validation = initiateOnlinePaymentSchema.safeParse({
+    transaksiId: payForm.transaksiId,
+    paymentMethodCode: payForm.paymentMethodCode,
+  });
 
-  if (Object.keys(payErrors.value).length > 0) return;
+  if (!validation.success) {
+    const errors = validation.error.flatten().fieldErrors;
+    payErrors.value = {
+      transaksiId: errors.transaksiId?.[0] || '',
+      paymentMethodCode: errors.paymentMethodCode?.[0] || '',
+    };
+    return;
+  }
 
   isSubmitting.value = true;
   try {
-    const res = await api.post<InitiatePaymentResponse>('/member/fine-payments/pay', {
-      transaksiId: payForm.transaksiId,
-      paymentMethodCode: payForm.paymentMethodCode,
-    });
+    const res = await api.post<InitiatePaymentResponse>(
+      '/member/fine-payments/pay',
+      validation.data,
+    );
 
     paymentResult.value = res.data;
     showToast('success', 'Tagihan pembayaran berhasil dibuat!');
@@ -161,8 +178,14 @@ const submitPayment = async () => {
         <label class="block text-xs font-semibold text-charcoalDark mb-1">
           Pilih Transaksi Denda <span class="text-rose-500">*</span>
         </label>
+        <div
+          v-if="loading"
+          class="p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-500 animate-pulse"
+        >
+          Memuat daftar transaksi denda...
+        </div>
         <select
-          v-if="penaltyTransactions.length > 0"
+          v-else-if="penaltyTransactions.length > 0"
           v-model="payForm.transaksiId"
           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-mustard focus:border-mustard outline-none transition bg-white cursor-pointer"
           :class="{ 'border-rose-500': payErrors.transaksiId }"
@@ -214,6 +237,9 @@ const submitPayment = async () => {
             </span>
           </label>
         </div>
+        <p v-if="payErrors.paymentMethodCode" class="text-xs text-rose-500 mt-1">
+          {{ payErrors.paymentMethodCode }}
+        </p>
       </div>
 
       <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">

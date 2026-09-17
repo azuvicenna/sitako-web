@@ -23,10 +23,7 @@ export const formatDateTime = (
   return formatDate(date, format, fallback);
 };
 
-export const formatRelativeTime = (
-  date?: string | Date | null,
-  fallback = '-',
-): string => {
+export const formatRelativeTime = (date?: string | Date | null, fallback = '-'): string => {
   if (!date) return fallback;
   const d = dayjs(date);
   return d.isValid() ? d.fromNow() : fallback;

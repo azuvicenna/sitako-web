@@ -87,6 +87,12 @@ const router = createRouter({
           component: () => import('@/views/librarian/ReportView.vue'),
           meta: { title: 'Buat Laporan' },
         },
+        {
+          path: 'profil',
+          name: 'librarianProfile',
+          component: () => import('@/views/profile/ProfileView.vue'),
+          meta: { title: 'Profil Pustakawan' },
+        },
       ],
     },
     {
@@ -127,7 +133,47 @@ const router = createRouter({
           component: () => import('@/views/member/FineView.vue'),
           meta: { title: 'Riwayat & Tagihan Denda' },
         },
+        {
+          path: 'profil',
+          name: 'memberProfile',
+          component: () => import('@/views/profile/ProfileView.vue'),
+          meta: { title: 'Profil Anggota' },
+        },
       ],
+    },
+    {
+      path: '/profil',
+      redirect: () => {
+        const authStore = useAuthStore();
+        if (authStore.role === 'Anggota') return '/anggota/profil';
+        return '/pustakawan/profil';
+      },
+    },
+    // Rute Autentikasi
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/views/auth/LoginView.vue'),
+      meta: { title: 'Masuk' },
+    },
+    // Rute Kesalahan (Error Pages)
+    {
+      path: '/404',
+      name: 'error404',
+      component: () => import('@/views/errors/NotFoundView.vue'),
+      meta: { title: '404 - Halaman Tidak Ditemukan' },
+    },
+    {
+      path: '/403',
+      name: 'error403',
+      component: () => import('@/views/errors/ForbiddenView.vue'),
+      meta: { title: '403 - Akses Ditolak' },
+    },
+    {
+      path: '/500',
+      name: 'error500',
+      component: () => import('@/views/errors/ServerErrorView.vue'),
+      meta: { title: '500 - Kesalahan Server' },
     },
     // Redirects for flat / legacy paths to maintain backward compatibility
     { path: '/rak', redirect: '/pustakawan/rak' },
@@ -136,11 +182,21 @@ const router = createRouter({
     { path: '/peminjaman', redirect: '/pustakawan/peminjaman' },
     { path: '/pengembalian', redirect: '/pustakawan/pengembalian' },
     { path: '/laporan', redirect: '/pustakawan/laporan' },
+    // Catch-all route: arahkan URL yang tidak terdaftar ke 404
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/404',
+    },
   ],
 });
 
-router.beforeEach(async (to, _from, next) => {
+router.beforeEach(async (to) => {
   NProgress.start();
+
+  // Atur judul dokumen jika tersedia di meta
+  if (to.meta.title) {
+    document.title = `${to.meta.title} | SITAKO`;
+  }
 
   const authStore = useAuthStore();
 
@@ -154,6 +210,14 @@ router.beforeEach(async (to, _from, next) => {
     }
   }
 
+  // Jika sudah login dan mencoba mengakses /login, arahkan ke dashboard
+  if (to.name === 'login' || to.path === '/login') {
+    if (authStore.isAuthenticated && authStore.role) {
+      return authStore.role === 'Anggota' ? '/anggota/dashboard' : '/pustakawan/dashboard';
+    }
+    return;
+  }
+
   const matchedAuth = to.matched.find((record) => record.meta.requiresAuth);
   const requiresAuth = !!matchedAuth;
   const allowedRoles =
@@ -161,33 +225,20 @@ router.beforeEach(async (to, _from, next) => {
     (matchedAuth?.meta.roles as UserRole[] | undefined);
 
   if (!requiresAuth) {
-    return next();
+    return;
   }
 
   // Jika sudah terautentikasi dan memiliki role
   if (authStore.isAuthenticated && authStore.role) {
     if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(authStore.role)) {
-      // Redirect ke dashboard yang sesuai dengan rolenya
-      if (authStore.role === 'Pustakawan') {
-        return next('/pustakawan/dashboard');
-      } else {
-        return next('/anggota/dashboard');
-      }
+      // Alihkan ke halaman 403 Akses Ditolak jika peran tidak diizinkan
+      return '/403';
     }
-    return next();
+    return;
   }
 
-  // Jika belum terautentikasi
-  if (to.name === 'login' || to.path === '/login') {
-    return next();
-  }
-
-  if (router.hasRoute('login')) {
-    return next({ name: 'login', query: { redirect: to.fullPath } });
-  }
-
-  // Fallback pengembangan
-  next();
+  // Jika belum terautentikasi dan rute memerlukan autentikasi
+  return { name: 'login', query: { redirect: to.fullPath } };
 });
 
 router.afterEach(() => {

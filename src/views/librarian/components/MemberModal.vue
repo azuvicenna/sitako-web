@@ -77,7 +77,7 @@ const initForm = () => {
     form.email = props.member.email;
     form.telepon = props.member.telepon;
     form.status_aktif = props.member.status_aktif;
-    form.fotoPreview = props.member.foto;
+    form.fotoPreview = props.member.foto || '';
   }
 };
 

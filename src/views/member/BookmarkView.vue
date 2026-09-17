@@ -29,7 +29,6 @@ const { showToast } = useToast();
 
 // --- STATE: FILTER & PENCARIAN ---
 const { page, search, debouncedSearch, handleSearchChange, reset } = usePaginationSearch();
-const typeFilter = ref<'Semua' | 'Fisik' | 'Digital'>('Semua');
 const limit = 12;
 
 // --- QUERY DAFTAR BOOKMARK ---
@@ -47,13 +46,7 @@ const { data: bookmarksResponse, isLoading } = useQuery({
   },
 });
 
-const allBookmarks = computed<MemberBookmarkItem[]>(() => bookmarksResponse.value?.data || []);
-
-// Filter berdasarkan tipe buku (Semua / Fisik / Digital) di client
-const filteredBookmarks = computed(() => {
-  if (typeFilter.value === 'Semua') return allBookmarks.value;
-  return allBookmarks.value.filter((item) => item.buku?.tipeBuku === typeFilter.value);
-});
+const bookmarks = computed<MemberBookmarkItem[]>(() => bookmarksResponse.value?.data || []);
 
 const pagination = computed(
   () =>
@@ -146,46 +139,6 @@ const handleToggleFromDetail = () => {
     <!-- FILTER & PENCARIAN -->
     <Card class="p-5">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <!-- Tipe Filter Tabs -->
-        <div class="flex items-center gap-1.5 bg-gray-100/80 p-1 rounded-xl w-fit">
-          <button
-            type="button"
-            @click="typeFilter = 'Semua'"
-            :class="[
-              'px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer',
-              typeFilter === 'Semua'
-                ? 'bg-white text-charcoalDark shadow-sm'
-                : 'text-gray-500 hover:text-gray-700',
-            ]"
-          >
-            Semua
-          </button>
-          <button
-            type="button"
-            @click="typeFilter = 'Fisik'"
-            :class="[
-              'px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer',
-              typeFilter === 'Fisik'
-                ? 'bg-white text-amber-800 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700',
-            ]"
-          >
-            Buku Fisik
-          </button>
-          <button
-            type="button"
-            @click="typeFilter = 'Digital'"
-            :class="[
-              'px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer',
-              typeFilter === 'Digital'
-                ? 'bg-white text-indigo-800 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700',
-            ]"
-          >
-            E-Book Digital
-          </button>
-        </div>
-
         <!-- Input Pencarian -->
         <div class="w-full sm:w-80">
           <Input
@@ -198,6 +151,11 @@ const handleToggleFromDetail = () => {
               <MagnifyingGlassIcon class="w-5 h-5 text-gray-400" />
             </template>
           </Input>
+        </div>
+
+        <div class="text-xs font-semibold text-gray-500">
+          Total Buku Tersimpan:
+          <span class="text-charcoalDark font-bold">{{ pagination.totalItems }}</span> Buku
         </div>
       </div>
     </Card>
@@ -218,7 +176,7 @@ const handleToggleFromDetail = () => {
 
     <!-- EMPTY STATE -->
     <div
-      v-else-if="filteredBookmarks.length === 0"
+      v-else-if="bookmarks.length === 0"
       class="bg-white rounded-2xl p-12 text-center border border-dashed border-gray-200 shadow-sm flex flex-col items-center justify-center"
     >
       <div
@@ -249,7 +207,7 @@ const handleToggleFromDetail = () => {
     <!-- GRID BOOKMARK BUKU -->
     <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
       <BookCard
-        v-for="item in filteredBookmarks"
+        v-for="item in bookmarks"
         :key="item.id"
         :book="item.buku"
         :is-bookmarked="true"

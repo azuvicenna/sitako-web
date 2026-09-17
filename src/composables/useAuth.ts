@@ -2,7 +2,12 @@ import { storeToRefs } from 'pinia';
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import { api } from '@/utils/axios';
 import { useAuthStore } from '@/stores/auth';
-import type { LoginPayload, LoginResponse, ProfileResponse } from '@/types/auth';
+import type {
+  LoginPayload,
+  LoginResponse,
+  ProfileResponse,
+  UpdateProfilePayload,
+} from '@/types/auth';
 
 export function useAuth() {
   const authStore = useAuthStore();
@@ -27,6 +32,17 @@ export function useAuth() {
     onSuccess: () => {
       authStore.clearUser();
       queryClient.clear();
+    },
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (payload: UpdateProfilePayload) => {
+      const { data } = await api.put<ProfileResponse>('/profile/me', payload);
+      return data;
+    },
+    onSuccess: (data) => {
+      authStore.setUser(data);
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
     },
   });
 
@@ -62,6 +78,10 @@ export function useAuth() {
     logout: logoutMutation.mutate,
     logoutAsync: logoutMutation.mutateAsync,
     isLoggingOut: logoutMutation.isPending,
+    updateProfile: updateProfileMutation.mutate,
+    updateProfileAsync: updateProfileMutation.mutateAsync,
+    isUpdatingProfile: updateProfileMutation.isPending,
+    updateProfileError: updateProfileMutation.error,
     fetchCaptcha,
     fetchProfile,
   };

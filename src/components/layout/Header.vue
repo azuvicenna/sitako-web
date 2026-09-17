@@ -48,10 +48,21 @@ const userSubtext = computed(() => {
   return user.value.email;
 });
 const userRoleName = computed(() => authStore.role || 'Pustakawan');
-const userAvatar = computed(() => {
-  if (user.value?.foto) return user.value.foto;
-  const name = encodeURIComponent(userName.value);
-  return `https://ui-avatars.com/api/?name=${name}&background=eab308&color=1f2937&rounded=false&size=128`;
+const avatarLoadError = ref(false);
+
+watch(
+  () => user.value?.foto,
+  () => {
+    avatarLoadError.value = false;
+  },
+);
+
+const userInitial = computed(() => {
+  return userName.value.trim().charAt(0).toUpperCase() || 'U';
+});
+
+const profileRoute = computed(() => {
+  return isLibrarian.value ? '/pustakawan/profil' : '/anggota/profil';
 });
 
 const isISBN = (val: string) => {
@@ -60,6 +71,14 @@ const isISBN = (val: string) => {
 };
 
 const executeSearch = useDebounceFn(async (query: string) => {
+  // Anggota tidak menggunakan live search popover di header
+  if (!isLibrarian.value) {
+    matchedBooks.value = [];
+    matchedMembers.value = [];
+    isLoading.value = false;
+    return;
+  }
+
   const trimmed = query.trim();
   if (trimmed.length < 2) {
     matchedBooks.value = [];
@@ -71,34 +90,26 @@ const executeSearch = useDebounceFn(async (query: string) => {
   isLoading.value = true;
 
   try {
-    if (isLibrarian.value) {
-      const [booksFisikRes, booksDigitalRes, membersRes] = await Promise.allSettled([
-        api.get<{ data: Book[] }>(
-          `/books/?bookType=Fisik&limit=4&search=${encodeURIComponent(trimmed)}`,
-        ),
-        api.get<{ data: Book[] }>(
-          `/books/?bookType=Digital&limit=4&search=${encodeURIComponent(trimmed)}`,
-        ),
-        api.get<{ data: MemberUser[] }>(
-          `/user/members/?statusActive=Semua&limit=4&search=${encodeURIComponent(trimmed)}`,
-        ),
-      ]);
+    const [booksFisikRes, booksDigitalRes, membersRes] = await Promise.allSettled([
+      api.get<{ data: Book[] }>(
+        `/books/?bookType=Fisik&limit=4&search=${encodeURIComponent(trimmed)}`,
+      ),
+      api.get<{ data: Book[] }>(
+        `/books/?bookType=Digital&limit=4&search=${encodeURIComponent(trimmed)}`,
+      ),
+      api.get<{ data: MemberUser[] }>(
+        `/user/members/?statusActive=Semua&limit=4&search=${encodeURIComponent(trimmed)}`,
+      ),
+    ]);
 
-      const fisikList =
-        booksFisikRes.status === 'fulfilled' ? booksFisikRes.value.data.data || [] : [];
-      const digitalList =
-        booksDigitalRes.status === 'fulfilled' ? booksDigitalRes.value.data.data || [] : [];
-      matchedBooks.value = [...fisikList, ...digitalList].slice(0, 5);
+    const fisikList =
+      booksFisikRes.status === 'fulfilled' ? booksFisikRes.value.data.data || [] : [];
+    const digitalList =
+      booksDigitalRes.status === 'fulfilled' ? booksDigitalRes.value.data.data || [] : [];
+    matchedBooks.value = [...fisikList, ...digitalList].slice(0, 5);
 
-      matchedMembers.value =
-        membersRes.status === 'fulfilled' ? membersRes.value.data.data || [] : [];
-    } else {
-      const booksRes = await api.get<{ data: Book[] }>(
-        `/book/?limit=5&search=${encodeURIComponent(trimmed)}`,
-      );
-      matchedBooks.value = booksRes.data.data || [];
-      matchedMembers.value = [];
-    }
+    matchedMembers.value =
+      membersRes.status === 'fulfilled' ? membersRes.value.data.data || [] : [];
   } catch {
     matchedBooks.value = [];
     matchedMembers.value = [];
@@ -108,6 +119,14 @@ const executeSearch = useDebounceFn(async (query: string) => {
 }, 300);
 
 watch(searchQuery, (newVal) => {
+  // Jika role adalah Anggota, jangan buka autocomplete dropdown dan jangan lakukan search di header
+  if (!isLibrarian.value) {
+    isDropdownOpen.value = false;
+    matchedBooks.value = [];
+    matchedMembers.value = [];
+    return;
+  }
+
   if (newVal.trim().length >= 2) {
     isDropdownOpen.value = true;
     executeSearch(newVal);
@@ -173,6 +192,18 @@ const navigateToMemberSearch = (keyword: string) => {
 
 const handleEnterKey = () => {
   const query = searchQuery.value.trim();
+
+  // Jika role adalah Anggota: tidak boleh mencari data anggota,
+  // langsung diarahkan ke halaman katalog buku dan GET data di sana
+  if (!isLibrarian.value) {
+    isDropdownOpen.value = false;
+    router.push({
+      path: '/anggota/katalog',
+      query: query ? { search: query } : {},
+    });
+    return;
+  }
+
   if (!query) return;
 
   if (isISBN(query)) {
@@ -208,21 +239,23 @@ const handleEnterKey = () => {
         <Bars3Icon class="w-6 h-6" />
       </button>
 
-      <div class="relative flex-1">
+      <form @submit.prevent="handleEnterKey" class="relative flex-1">
         <Input
           v-model="searchQuery"
           :icon="MagnifyingGlassIcon"
           :placeholder="
-            isLibrarian ? 'Cari ISBN, Judul, atau Nama Anggota...' : 'Cari ISBN atau Judul Buku...'
+            isLibrarian
+              ? 'Cari ISBN, Judul, atau Nama Anggota...'
+              : 'Cari judul buku atau ISBN (tekan Enter)...'
           "
-          @focus="if (searchQuery.trim().length >= 2) isDropdownOpen = true;"
+          @focus="if (isLibrarian && searchQuery.trim().length >= 2) isDropdownOpen = true;"
           @keydown.enter="handleEnterKey"
           @keydown.esc="isDropdownOpen = false"
         />
 
-        <!-- Autocomplete Dropdown Popover -->
+        <!-- Autocomplete Dropdown Popover (Hanya untuk Pustakawan) -->
         <div
-          v-if="isDropdownOpen && searchQuery.trim().length >= 2"
+          v-if="isLibrarian && isDropdownOpen && searchQuery.trim().length >= 2"
           class="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 py-2 z-50 max-h-115 overflow-y-auto"
         >
           <!-- Loading State -->
@@ -397,22 +430,46 @@ const handleEnterKey = () => {
             </div>
           </div>
         </div>
-      </div>
+      </form>
     </div>
 
     <div class="flex items-center gap-4 ml-6">
-      <div class="flex items-center gap-3">
+      <router-link
+        :to="profileRoute"
+        class="flex items-center gap-3 cursor-pointer group hover:opacity-95 transition-opacity"
+        title="Buka Profil Saya"
+      >
         <div
-          class="w-9 h-9 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center shrink-0"
+          class="w-9 h-9 bg-amber-100/80 rounded-lg overflow-hidden border border-amber-200/90 flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
         >
-          <img :src="userAvatar" :alt="userName" class="w-full h-full object-cover" />
+          <img
+            v-if="user?.foto && !avatarLoadError"
+            :src="user.foto"
+            :alt="userName"
+            class="w-full h-full object-cover cursor-pointer"
+            @error="avatarLoadError = true"
+          />
+          <div
+            v-else
+            class="w-full h-full flex items-center justify-center font-bold text-xs text-charcoalDark bg-amber-100 cursor-pointer select-none"
+          >
+            {{ userInitial }}
+          </div>
         </div>
-        <div class="hidden md:flex flex-col justify-center h-9 text-right">
-          <p class="text-xs font-semibold text-charcoalDark leading-none">{{ userName }}</p>
-          <p class="text-[10px] text-gray-500 leading-none mt-1">{{ userSubtext }}</p>
-          <p class="text-[9px] text-gray-400 leading-none mt-0.5">{{ userRoleName }}</p>
+        <div class="hidden md:flex flex-col justify-center h-9 text-right cursor-pointer">
+          <p
+            class="text-xs font-semibold text-charcoalDark leading-none group-hover:text-mustardHover transition-colors cursor-pointer"
+          >
+            {{ userName }}
+          </p>
+          <p class="text-[10px] text-gray-500 leading-none mt-1 cursor-pointer">
+            {{ userSubtext }}
+          </p>
+          <p class="text-[9px] text-gray-400 leading-none mt-0.5 cursor-pointer">
+            {{ userRoleName }}
+          </p>
         </div>
-      </div>
+      </router-link>
     </div>
   </header>
 </template>

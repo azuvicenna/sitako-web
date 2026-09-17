@@ -6,6 +6,7 @@ interface Props {
   type?: string;
   placeholder?: string;
   icon?: Component;
+  iconRight?: Component;
   disabled?: boolean;
   id?: string;
   name?: string;
@@ -53,9 +54,22 @@ const onInput = (event: Event) => {
       @focus="emit('focus', $event)"
       @blur="emit('blur', $event)"
       :class="[
-        'block w-full pr-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm placeholder-gray-500 focus:outline-none focus:border-mustard focus:ring-1 focus:ring-mustard transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+        'block w-full py-2 bg-gray-50 border border-gray-200 rounded-md text-sm placeholder-gray-500 focus:outline-none focus:border-mustard focus:ring-1 focus:ring-mustard transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
         icon || $slots.icon ? 'pl-10' : 'pl-3',
+        iconRight || $slots.iconRight ? 'pr-10' : 'pr-3',
       ]"
     />
+    <div
+      v-if="iconRight || $slots.iconRight"
+      class="absolute inset-y-0 right-0 pr-3 flex items-center"
+    >
+      <slot name="iconRight">
+        <component
+          :is="iconRight"
+          v-if="iconRight"
+          class="w-5 h-5 text-gray-500 shrink-0 pointer-events-none"
+        />
+      </slot>
+    </div>
   </div>
 </template>

@@ -10,6 +10,7 @@ import { api } from '@/utils/axios';
 import { formatRupiah } from '@/utils/currency';
 import { getErrorMessage } from '@/utils/error';
 import { useToast } from '@/composables/useToast';
+import { returnTransactionSchema } from '@/validations';
 import type { MemberTransactionItem, ReturnTransactionResponse } from '@/types/member-transaction';
 
 interface Props {
@@ -51,11 +52,20 @@ const handleClose = () => {
 const submitReturn = async () => {
   if (!props.transaction) return;
 
+  const validation = returnTransactionSchema.safeParse({
+    isBukuHilang: isLostBook.value,
+  });
+
+  if (!validation.success) {
+    showToast('danger', 'Data pengembalian tidak valid');
+    return;
+  }
+
   isSubmitting.value = true;
   try {
     const res = await api.post<ReturnTransactionResponse>(
       `/member/transactions/${props.transaction.id}/return`,
-      { isBukuHilang: isLostBook.value },
+      validation.data,
     );
 
     returnResult.value = res.data;
