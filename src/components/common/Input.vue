@@ -20,6 +20,9 @@ withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
+  (e: 'keydown', event: KeyboardEvent): void;
+  (e: 'focus', event: FocusEvent): void;
+  (e: 'blur', event: FocusEvent): void;
 }>();
 
 const onInput = (event: Event) => {
@@ -46,6 +49,9 @@ const onInput = (event: Event) => {
       :placeholder="placeholder"
       :disabled="disabled"
       @input="onInput"
+      @keydown="emit('keydown', $event)"
+      @focus="emit('focus', $event)"
+      @blur="emit('blur', $event)"
       :class="[
         'block w-full pr-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm placeholder-gray-500 focus:outline-none focus:border-mustard focus:ring-1 focus:ring-mustard transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
         icon || $slots.icon ? 'pl-10' : 'pl-3',

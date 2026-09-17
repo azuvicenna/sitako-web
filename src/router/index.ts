@@ -1,7 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import NProgress from 'nprogress';
 import type { UserRole } from '@/types/auth';
 import { useAuthStore } from '@/stores/auth';
 import { useAuth } from '@/composables/useAuth';
+
+NProgress.configure({ showSpinner: false });
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -137,6 +140,8 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, _from, next) => {
+  NProgress.start();
+
   const authStore = useAuthStore();
 
   // Inisialisasi profil pengguna dari sesi cookie jika belum dilakukan
@@ -183,6 +188,14 @@ router.beforeEach(async (to, _from, next) => {
 
   // Fallback pengembangan
   next();
+});
+
+router.afterEach(() => {
+  NProgress.done();
+});
+
+router.onError(() => {
+  NProgress.done();
 });
 
 export default router;

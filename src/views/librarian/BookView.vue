@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
 import dayjs from 'dayjs';
 import {
@@ -27,11 +28,24 @@ import { usePaginationSearch } from '@/composables/usePaginationSearch';
 import type { TableColumn } from '@/types/table';
 import type { Book, BookListResponse } from '@/types/book';
 
+const route = useRoute();
 const queryClient = useQueryClient();
 const { showToast } = useToast();
 
 // --- STATE: TABS, SEARCH & TABEL ---
-const activeBookType = ref<'Fisik' | 'Digital'>('Fisik');
+const initialBookType =
+  route.query.type === 'Digital' || route.query.bookType === 'Digital' ? 'Digital' : 'Fisik';
+const activeBookType = ref<'Fisik' | 'Digital'>(initialBookType);
+
+watch(
+  () => route.query.type || route.query.bookType,
+  (newType) => {
+    if (newType === 'Digital' || newType === 'Fisik') {
+      activeBookType.value = newType;
+    }
+  },
+);
+
 const { page, search, debouncedSearch, handleSearchChange, handlePageChange } =
   usePaginationSearch();
 

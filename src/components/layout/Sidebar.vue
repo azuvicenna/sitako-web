@@ -8,6 +8,7 @@ import Modal from '@/components/common/Modal.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useAuth } from '@/composables/useAuth';
 import { sidebarMenuGroups } from '@/data/sidebar-menu';
+import { appInfo } from '@/data/app-info';
 
 defineProps<{
   isOpen: boolean;
@@ -24,8 +25,8 @@ const handleLogout = async () => {
   isLogoutModalOpen.value = false;
   try {
     await logoutAsync();
-  } catch (error) {
-    console.error('Logout error:', error);
+  } catch {
+    // Abaikan galat logout pada sisi client
   } finally {
     router.push('/login');
   }
@@ -76,9 +77,9 @@ const isRouteActive = (path: string) => {
           <BookOpenIcon class="w-5 h-5 shrink-0" />
         </div>
         <div>
-          <h1 class="text-sm font-bold text-charcoalDark leading-tight">SITAKO</h1>
+          <h1 class="text-sm font-bold text-charcoalDark leading-tight">{{ appInfo.name }}</h1>
           <p class="text-[8px] text-gray-500 font-medium leading-tight whitespace-normal mt-0.5">
-            Sistem Informasi Perpustakaan Sekolah<br />Versi v1.0.0
+            {{ appInfo.description }}<br />Versi {{ appInfo.version }}
           </p>
         </div>
       </div>
@@ -132,7 +133,7 @@ const isRouteActive = (path: string) => {
   <Modal
     v-model="isLogoutModalOpen"
     title="Konfirmasi Logout"
-    description="Apakah Anda yakin ingin keluar dari sistem SITAKO? Sesi aktif Anda saat ini akan diakhiri."
+    :description="`Apakah Anda yakin ingin keluar dari sistem ${appInfo.name}? Sesi aktif Anda saat ini akan diakhiri.`"
     :icon="ArrowLeftStartOnRectangleIcon"
     icon-variant="danger"
   >

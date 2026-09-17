@@ -10,3 +10,20 @@
   --color-secondary: #e5e7eb;
   --color-secondaryHover: #d1d5db;
 }
+
+/* NProgress Customization */
+#nprogress .bar {
+  background: var(--color-mustard, #eab308) !important;
+  height: 3px;
+}
+
+#nprogress .peg {
+  box-shadow:
+    0 0 10px var(--color-mustard, #eab308),
+    0 0 5px var(--color-mustard, #eab308) !important;
+}
+
+#nprogress .spinner-icon {
+  border-top-color: var(--color-mustard, #eab308) !important;
+  border-left-color: var(--color-mustard, #eab308) !important;
+}
