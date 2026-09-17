@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { RouterLink } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import {
   navLinks,
@@ -14,7 +14,6 @@ import {
   footerData,
 } from '@/data/landing';
 
-const router = useRouter();
 const authStore = useAuthStore();
 
 const activeSection = ref<string>('beranda');
@@ -33,11 +32,6 @@ const ctaLabel = computed(() => {
 const navCtaLabel = computed(() => {
   return authStore.isAuthenticated ? 'Dashboard' : 'Login';
 });
-
-const handleNavigate = (targetPath: string) => {
-  isMobileMenuOpen.value = false;
-  router.push(targetPath);
-};
 
 const scrollToSection = (href: string) => {
   isMobileMenuOpen.value = false;
@@ -127,9 +121,8 @@ onUnmounted(() => {
               {{ link.label }}
             </a>
 
-            <button
-              type="button"
-              @click="handleNavigate(dashboardPath)"
+            <RouterLink
+              :to="dashboardPath"
               class="bg-mustard hover:bg-mustardHover text-white px-6 py-2 rounded-full font-medium transition-all shadow-md shadow-mustard/30 text-sm flex items-center gap-2 transform hover:-translate-y-0.5 cursor-pointer"
             >
               <svg
@@ -147,7 +140,7 @@ onUnmounted(() => {
                 />
               </svg>
               {{ navCtaLabel }}
-            </button>
+            </RouterLink>
           </div>
 
           <!-- Mobile Hamburger Button -->
@@ -209,10 +202,10 @@ onUnmounted(() => {
           >
             {{ link.label }}
           </a>
-          <button
-            type="button"
-            @click="handleNavigate(dashboardPath)"
-            class="w-full mt-2 bg-mustard hover:bg-mustardHover text-white px-5 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-md shadow-mustard/20 text-sm"
+          <RouterLink
+            :to="dashboardPath"
+            @click="isMobileMenuOpen = false"
+            class="w-full mt-2 bg-mustard hover:bg-mustardHover text-white px-5 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-md shadow-mustard/20 text-sm cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -229,7 +222,7 @@ onUnmounted(() => {
               />
             </svg>
             {{ navCtaLabel }}
-          </button>
+          </RouterLink>
         </div>
       </transition>
     </nav>
@@ -258,9 +251,8 @@ onUnmounted(() => {
         </p>
 
         <div class="flex justify-center">
-          <button
-            type="button"
-            @click="handleNavigate(dashboardPath)"
+          <RouterLink
+            :to="dashboardPath"
             class="bg-mustard hover:bg-mustardHover text-white px-10 py-4 rounded-full font-bold text-lg transition-all shadow-lg shadow-mustard/30 transform hover:-translate-y-1 flex items-center gap-3 cursor-pointer"
           >
             <svg
@@ -278,7 +270,7 @@ onUnmounted(() => {
               />
             </svg>
             {{ ctaLabel }}
-          </button>
+          </RouterLink>
         </div>
       </div>
     </section>
@@ -649,9 +641,8 @@ onUnmounted(() => {
             </p>
 
             <div class="flex flex-wrap gap-4">
-              <button
-                type="button"
-                @click="handleNavigate('/login')"
+              <RouterLink
+                to="/login"
                 class="bg-charcoalDark hover:bg-charcoal text-white px-6 py-3 rounded-lg flex items-center gap-3 transition shadow-lg cursor-pointer"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" fill="currentColor" class="w-6 h-6">
@@ -663,11 +654,10 @@ onUnmounted(() => {
                   <span class="text-[10px] block font-light">Download on the</span>
                   <span class="font-bold text-sm tracking-wide">{{ downloadData.appStoreText }}</span>
                 </div>
-              </button>
+              </RouterLink>
 
-              <button
-                type="button"
-                @click="handleNavigate('/login')"
+              <RouterLink
+                to="/login"
                 class="bg-charcoalDark hover:bg-charcoal text-white px-6 py-3 rounded-lg flex items-center gap-3 transition shadow-lg cursor-pointer"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor" class="w-6 h-6">
@@ -679,7 +669,7 @@ onUnmounted(() => {
                   <span class="text-[10px] block font-light">GET IT ON</span>
                   <span class="font-bold text-sm tracking-wide">{{ downloadData.playStoreText }}</span>
                 </div>
-              </button>
+              </RouterLink>
             </div>
           </div>
 
@@ -802,13 +792,12 @@ onUnmounted(() => {
         </div>
 
         <div class="mt-16 text-center">
-          <button
-            type="button"
-            @click="handleNavigate(dashboardPath)"
+          <RouterLink
+            :to="dashboardPath"
             class="inline-block bg-mustard hover:bg-mustardHover text-white px-10 py-4 rounded-full font-bold text-lg transition-all shadow-lg shadow-mustard/30 transform hover:-translate-y-1 cursor-pointer"
           >
             {{ contactData.ctaText }}
-          </button>
+          </RouterLink>
         </div>
       </div>
     </section>
@@ -846,14 +835,13 @@ onUnmounted(() => {
             <h4 class="font-bold text-lg mb-6 border-b border-gray-700 pb-2 inline-block">Menu Cepat</h4>
             <ul class="space-y-3 text-sm text-gray-400">
               <li v-for="item in footerData.quickLinks" :key="item.label">
-                <button
+                <RouterLink
                   v-if="item.isInternalRoute"
-                  type="button"
-                  @click="handleNavigate(item.href)"
+                  :to="item.href"
                   class="hover:text-mustard transition-colors flex items-center gap-2 cursor-pointer text-left"
                 >
                   {{ item.label }}
-                </button>
+                </RouterLink>
                 <a
                   v-else
                   :href="item.href"
@@ -870,14 +858,13 @@ onUnmounted(() => {
             <h4 class="font-bold text-lg mb-6 border-b border-gray-700 pb-2 inline-block">Informasi Akademik</h4>
             <ul class="space-y-3 text-sm text-gray-400">
               <li v-for="item in footerData.academicInfo" :key="item.label">
-                <button
+                <RouterLink
                   v-if="item.isInternalRoute"
-                  type="button"
-                  @click="handleNavigate(item.href)"
+                  :to="item.href"
                   class="hover:text-mustard transition-colors flex items-center gap-2 cursor-pointer text-left"
                 >
                   {{ item.label }}
-                </button>
+                </RouterLink>
                 <a
                   v-else
                   :href="item.href"
