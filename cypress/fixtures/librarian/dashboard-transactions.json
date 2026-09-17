@@ -1,0 +1,50 @@
+{
+  "success": true,
+  "message": "Transaksi hari ini berhasil dimuat",
+  "data": [
+    {
+      "id": "tx-today-1",
+      "bukuId": "bk-01",
+      "pustakawanId": "lib-001",
+      "anggotaId": "mem-001",
+      "kdTransaksi": "TRX-20260917-0001",
+      "tglPinjam": "2026-09-17",
+      "tglKembali": "2026-09-24",
+      "status": "Dipinjam",
+      "createdAt": "2026-09-17T08:15:00.000Z",
+      "namaAnggota": "Budi Santoso",
+      "judulBuku": "Laskar Pelangi"
+    },
+    {
+      "id": "tx-today-2",
+      "bukuId": "bk-02",
+      "pustakawanId": "lib-001",
+      "anggotaId": "mem-002",
+      "kdTransaksi": "TRX-20260917-0002",
+      "tglPinjam": "2026-09-10",
+      "tglKembali": "2026-09-17",
+      "status": "Dikembalikan",
+      "createdAt": "2026-09-17T09:30:00.000Z",
+      "namaAnggota": "Ahmad Fauzi",
+      "judulBuku": "Bumi Manusia"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "totalRows": 2,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPrevPage": false
+  },
+  "summary": {
+    "semua": 2,
+    "menungguPersetujuan": 0,
+    "dibatalkan": 0,
+    "menungguDiambil": 0,
+    "dipinjam": 1,
+    "dikembalikan": 1,
+    "terlambat": 0,
+    "tidakMengembalikan": 0
+  }
+}

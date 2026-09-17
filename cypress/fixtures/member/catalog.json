@@ -1,0 +1,40 @@
+{
+  "success": true,
+  "message": "Katalog buku berhasil dimuat",
+  "data": [
+    {
+      "id": "bk-01",
+      "judul": "Laskar Pelangi",
+      "penulis": "Andrea Hirata",
+      "penerbit": "Bentang Pustaka",
+      "isbn": "9789793062792",
+      "genre": ["Fiksi", "Pendidikan"],
+      "tipeBuku": "Fisik",
+      "tahunTerbit": 2005,
+      "jumlahStok": 15,
+      "cover": null,
+      "file": null
+    },
+    {
+      "id": "bk-02",
+      "judul": "Clean Code",
+      "penulis": "Robert C. Martin",
+      "penerbit": "Prentice Hall",
+      "isbn": "9780132350884",
+      "genre": ["Teknologi", "Pemrograman"],
+      "tipeBuku": "Digital",
+      "tahunTerbit": 2008,
+      "jumlahStok": 0,
+      "cover": null,
+      "file": "https://example.com/books/clean-code.pdf"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 12,
+    "totalItems": 2,
+    "totalPages": 1,
+    "hasNext": false,
+    "hasPrev": false
+  }
+}

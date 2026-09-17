@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### [2026-09-17]
+
+#### Added
+
+- Menambahkan unit test dengan vitest
+- Menambahkan e2e test dengan cypress
+- Menambahkan halaman login, profile, dan error (404, 403, 500)
+- Menambahkan dukungan PWA (Progressive Web Application) dan service worker caching
+- Optimasi antarmuka responsif mobile drawer dan backdrop navigasi
+- Pembaruan dokumentasi README.md sesuai standar arsitektur SITAKO
+
 ### [2026-09-16]
 
 #### Added

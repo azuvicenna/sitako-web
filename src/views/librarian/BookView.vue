@@ -22,6 +22,7 @@ import BookFormModal from './components/BookFormModal.vue';
 
 import { api } from '@/utils/axios';
 import { getErrorMessage } from '@/utils/error';
+import { getBookCoverPlaceholder } from '@/utils/image';
 import { useToast } from '@/composables/useToast';
 import { usePaginationSearch } from '@/composables/usePaginationSearch';
 
@@ -216,8 +217,7 @@ const confirmDeleteBook = () => {
               class="w-full h-full object-cover"
               @error="
                 (e) =>
-                  ((e.target as HTMLImageElement).src =
-                    'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100&auto=format&fit=crop&q=60')
+                  ((e.target as HTMLImageElement).src = getBookCoverPlaceholder(item.judul))
               "
             />
             <BookOpenIcon v-else class="w-6 h-6 text-gray-300" />

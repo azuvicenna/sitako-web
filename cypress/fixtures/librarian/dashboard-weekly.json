@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "message": "Statistik mingguan berhasil dimuat",
+  "statistik": [
+    { "tanggal": "2026-09-11", "hari": "Jumat", "total": 14 },
+    { "tanggal": "2026-09-12", "hari": "Sabtu", "total": 8 },
+    { "tanggal": "2026-09-13", "hari": "Minggu", "total": 0 },
+    { "tanggal": "2026-09-14", "hari": "Senin", "total": 22 },
+    { "tanggal": "2026-09-15", "hari": "Selasa", "total": 18 },
+    { "tanggal": "2026-09-16", "hari": "Rabu", "total": 19 },
+    { "tanggal": "2026-09-17", "hari": "Kamis", "total": 15 }
+  ],
+  "rataRata": 13.7
+}

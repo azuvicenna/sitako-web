@@ -1,0 +1,25 @@
+{
+  "success": true,
+  "message": "Daftar peminjaman anggota berhasil dimuat",
+  "data": [
+    {
+      "id": "mem-tx-01",
+      "kdTransaksi": "TRX-20260910-001",
+      "tglPinjam": "2026-09-10",
+      "tglKembali": "2026-09-17",
+      "status": "Dipinjam",
+      "namaAnggota": "Budi Santoso",
+      "namaPustakawan": "Siti Rahma",
+      "judulBuku": "Laskar Pelangi",
+      "bukuId": "bk-01"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "totalRows": 1,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPrevPage": false
+  }
+}

@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { BookOpenIcon, ArrowLeftStartOnRectangleIcon } from '@heroicons/vue/24/outline';
+import {
+  BookOpenIcon,
+  ArrowLeftStartOnRectangleIcon,
+  XMarkIcon,
+} from '@heroicons/vue/24/outline';
 
 import Button from '@/components/common/Button.vue';
 import Modal from '@/components/common/Modal.vue';
@@ -12,6 +16,10 @@ import { appInfo } from '@/data/app-info';
 
 defineProps<{
   isOpen: boolean;
+}>();
+
+const emit = defineEmits<{
+  (e: 'close'): void;
 }>();
 
 const route = useRoute();
@@ -67,9 +75,9 @@ const isRouteActive = (path: string) => {
 <template>
   <aside
     :class="isOpen ? 'w-64' : 'w-0'"
-    class="bg-white border-r border-gray-200 flex flex-col z-20 shrink-0 transition-all duration-300 overflow-hidden whitespace-nowrap"
+    class="bg-white border-r border-gray-200 flex flex-col z-40 fixed inset-y-0 left-0 lg:static lg:z-20 shrink-0 transition-all duration-300 overflow-hidden whitespace-nowrap h-full shadow-2xl lg:shadow-none"
   >
-    <div class="h-16 flex items-center justify-between px-6 border-b border-gray-200 w-64">
+    <div class="h-16 flex items-center justify-between px-6 border-b border-gray-200 w-64 shrink-0">
       <div class="flex items-center gap-3">
         <div
           class="w-8 h-8 bg-mustard rounded flex items-center justify-center text-charcoalDark shrink-0"
@@ -83,6 +91,16 @@ const isRouteActive = (path: string) => {
           </p>
         </div>
       </div>
+
+      <!-- Tombol Tutup Khusus Mobile Drawer -->
+      <button
+        type="button"
+        @click="emit('close')"
+        class="lg:hidden p-1.5 rounded-lg text-gray-500 hover:text-charcoalDark hover:bg-gray-100 transition-colors cursor-pointer"
+        aria-label="Tutup Menu Navigasi"
+      >
+        <XMarkIcon class="w-5 h-5" />
+      </button>
     </div>
 
     <div class="flex-1 overflow-y-auto py-4 w-64">
@@ -98,6 +116,7 @@ const isRouteActive = (path: string) => {
             v-for="item in group.items"
             :key="item.path"
             :to="item.path"
+            @click="emit('close')"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] transition-colors"
             :class="[
               isRouteActive(item.path)

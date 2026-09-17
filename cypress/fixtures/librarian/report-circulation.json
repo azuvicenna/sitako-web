@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "message": "Laporan sirkulasi berhasil dimuat",
+  "data": {
+    "totalPeminjaman": 45,
+    "totalPengembalian": 38,
+    "totalTerlambat": 7,
+    "transaksi": [
+      {
+        "kdTransaksi": "TRX-20260901-001",
+        "judulBuku": "Laskar Pelangi",
+        "namaAnggota": "Budi Santoso",
+        "tglPinjam": "2026-09-01",
+        "tglKembali": "2026-09-08",
+        "status": "Dipinjam"
+      }
+    ]
+  }
+}

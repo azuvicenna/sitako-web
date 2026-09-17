@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "message": "Login berhasil. Selamat datang kembali!",
+  "user": {
+    "id": "lib-001",
+    "nama": "Siti Rahma, S.Ptk",
+    "email": "siti.rahma@sitako.sch.id",
+    "telepon": "081234567890",
+    "foto": null,
+    "status_aktif": true,
+    "createdAt": "2025-01-01T08:00:00.000Z",
+    "nip": "198501012010012001",
+    "role": "Pustakawan"
+  }
+}

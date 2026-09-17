@@ -1,0 +1,26 @@
+{
+  "success": true,
+  "message": "Daftar rak berhasil dimuat",
+  "data": [
+    {
+      "id": "sh-01",
+      "namaRak": "Rak Sastra & Fiksi",
+      "createdAt": "2025-02-01T10:00:00.000Z",
+      "totalSusunan": 5
+    },
+    {
+      "id": "sh-02",
+      "namaRak": "Rak Sains & Teknologi",
+      "createdAt": "2025-02-02T11:00:00.000Z",
+      "totalSusunan": 8
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "totalRows": 2,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPrevPage": false
+  }
+}

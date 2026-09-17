@@ -2,6 +2,7 @@
 import { BookOpenIcon } from '@heroicons/vue/24/outline';
 import { BookmarkIcon as BookmarkOutlineIcon } from '@heroicons/vue/24/outline';
 import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/vue/24/solid';
+import { getBookCoverPlaceholder } from '@/utils/image';
 import type { CatalogBookItem, BookmarkBookDetail } from '@/types/member-catalog';
 
 interface Props {
@@ -34,6 +35,7 @@ const emit = defineEmits<{
         :alt="book.judul"
         loading="lazy"
         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        @error="(e) => ((e.target as HTMLImageElement).src = getBookCoverPlaceholder(book.judul))"
       />
       <div v-else class="flex flex-col items-center justify-center p-3 text-gray-400">
         <BookOpenIcon class="w-10 h-10 mb-1" />

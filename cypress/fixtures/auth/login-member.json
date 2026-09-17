@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "message": "Login berhasil. Selamat datang kembali!",
+  "user": {
+    "id": "mem-001",
+    "nama": "Budi Santoso",
+    "email": "budi.santoso@siswa.sch.id",
+    "telepon": "081298765432",
+    "foto": null,
+    "status_aktif": true,
+    "createdAt": "2025-07-15T09:30:00.000Z",
+    "nis": "20251001",
+    "role": "Anggota"
+  }
+}

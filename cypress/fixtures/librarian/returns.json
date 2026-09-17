@@ -1,0 +1,28 @@
+{
+  "success": true,
+  "message": "Daftar pengembalian berhasil dimuat",
+  "data": [
+    {
+      "id": "tx-02",
+      "kdTransaksi": "TRX-20260902-002",
+      "bukuId": "bk-02",
+      "pustakawanId": "lib-001",
+      "anggotaId": "mem-002",
+      "tglPinjam": "2026-09-02",
+      "tglKembali": "2026-09-09",
+      "status": "Dikembalikan",
+      "namaAnggota": "Ahmad Fauzi",
+      "namaPustakawan": "Siti Rahma",
+      "judulBuku": "Bumi Manusia",
+      "createdAt": "2026-09-09T14:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "totalRows": 1,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPrevPage": false
+  }
+}

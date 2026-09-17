@@ -20,6 +20,7 @@ import Table from '@/components/tables/Table.vue';
 import LibrarianModal from './components/LibrarianModal.vue';
 import { api } from '@/utils/axios';
 import { getErrorMessage } from '@/utils/error';
+import { getInitialsAvatar } from '@/utils/image';
 import { useToast } from '@/composables/useToast';
 import { usePaginationSearch } from '@/composables/usePaginationSearch';
 import type { TableColumn } from '@/types/table';
@@ -208,8 +209,7 @@ const confirmDeleteLibrarian = () => {
               class="w-full h-full object-cover"
               @error="
                 (e) =>
-                  ((e.target as HTMLImageElement).src =
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(item.nama)}&background=eab308&color=1f2937`)
+                  ((e.target as HTMLImageElement).src = getInitialsAvatar(item.nama))
               "
             />
             <span v-else class="text-xs font-bold text-gray-400">

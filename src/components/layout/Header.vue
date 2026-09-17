@@ -227,7 +227,7 @@ const handleEnterKey = () => {
 
 <template>
   <header
-    class="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-white shrink-0"
+    class="h-16 border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 bg-white shrink-0"
   >
     <div ref="searchContainerRef" class="relative flex items-center gap-4 w-full max-w-xl">
       <button
@@ -433,7 +433,7 @@ const handleEnterKey = () => {
       </form>
     </div>
 
-    <div class="flex items-center gap-4 ml-6">
+    <div class="flex items-center gap-3 sm:gap-4 ml-2 sm:ml-6 shrink-0">
       <router-link
         :to="profileRoute"
         class="flex items-center gap-3 cursor-pointer group hover:opacity-95 transition-opacity"

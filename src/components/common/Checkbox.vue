@@ -3,8 +3,8 @@ import { computed } from 'vue';
 import { CheckIcon } from '@heroicons/vue/16/solid';
 
 interface Props {
-  modelValue?: boolean | any[];
-  value?: any;
+  modelValue?: boolean | unknown[];
+  value?: unknown;
   label?: string;
   description?: string;
   disabled?: boolean;
@@ -14,13 +14,12 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: false,
-  value: null,
   disabled: false,
 });
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: boolean | any[]): void;
-  (e: 'change', value: boolean | any[]): void;
+  (e: 'update:modelValue', value: boolean | unknown[]): void;
+  (e: 'change', value: boolean | unknown[]): void;
 }>();
 
 const isChecked = computed(() => {
@@ -33,7 +32,7 @@ const isChecked = computed(() => {
 const handleChange = () => {
   if (props.disabled) return;
 
-  let newValue: boolean | any[];
+  let newValue: boolean | unknown[];
 
   if (Array.isArray(props.modelValue)) {
     const list = [...props.modelValue];

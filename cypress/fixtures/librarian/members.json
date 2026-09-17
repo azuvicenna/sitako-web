@@ -1,0 +1,34 @@
+{
+  "success": true,
+  "message": "Daftar anggota berhasil dimuat",
+  "data": [
+    {
+      "id": "mem-001",
+      "nama": "Budi Santoso",
+      "email": "budi.santoso@siswa.sch.id",
+      "telepon": "081298765432",
+      "nis": "20251001",
+      "foto": null,
+      "status_aktif": true,
+      "createdAt": "2025-07-15T09:30:00.000Z"
+    },
+    {
+      "id": "mem-002",
+      "nama": "Ahmad Fauzi",
+      "email": "ahmad.fauzi@siswa.sch.id",
+      "telepon": "081299990000",
+      "nis": "20251002",
+      "foto": null,
+      "status_aktif": false,
+      "createdAt": "2025-07-16T10:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "totalRows": 2,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPrevPage": false
+  }
+}

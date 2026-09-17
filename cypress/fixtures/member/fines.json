@@ -1,0 +1,25 @@
+{
+  "success": true,
+  "message": "Riwayat denda anggota berhasil dimuat",
+  "data": [
+    {
+      "id": "mem-fine-01",
+      "hargaDenda": 1000,
+      "totalDenda": 5000,
+      "tglBayar": "2026-09-12",
+      "metodePembayaran": "Tunai",
+      "createdAt": "2026-09-12T11:00:00.000Z",
+      "namaPustakawan": "Siti Rahma",
+      "kdTransaksi": "TRX-20260901-001",
+      "judulBuku": "Bumi Manusia"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "totalRows": 1,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPrevPage": false
+  }
+}

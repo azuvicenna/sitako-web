@@ -1,0 +1,30 @@
+{
+  "success": true,
+  "message": "Daftar denda berhasil dimuat",
+  "data": [
+    {
+      "id": "fine-01",
+      "pustakawanId": "lib-001",
+      "anggotaId": "mem-001",
+      "transaksiId": "tx-01",
+      "hargaDenda": 1000,
+      "totalDenda": 3000,
+      "tglBayar": "2026-09-15",
+      "metodePembayaran": "Tunai",
+      "paymentStatus": "PAID",
+      "namaPustakawan": "Siti Rahma",
+      "namaAnggota": "Budi Santoso",
+      "kdTransaksi": "TRX-20260901-001",
+      "judulBuku": "Laskar Pelangi",
+      "createdAt": "2026-09-15T08:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "totalRows": 1,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPrevPage": false
+  }
+}

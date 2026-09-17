@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "message": "Laporan denda berhasil dimuat",
+  "data": {
+    "totalDenda": 150000,
+    "dendaTerbayar": 120000,
+    "dendaBelumBayar": 30000,
+    "riwayat": []
+  }
+}

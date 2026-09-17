@@ -15,9 +15,11 @@ export function usePaginationSearch(options: UsePaginationSearchOptions = {}) {
   let route: ReturnType<typeof useRoute> | null = null;
 
   try {
-    route = useRoute();
-    if (syncWithRouteQuery && route && typeof route.query?.search === 'string') {
-      initialSearch = route.query.search;
+    if (syncWithRouteQuery) {
+      route = useRoute();
+      if (route && typeof route.query?.search === 'string') {
+        initialSearch = route.query.search;
+      }
     }
   } catch {
     // Gracefully handle environments without vue-router

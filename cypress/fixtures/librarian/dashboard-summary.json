@@ -1,0 +1,11 @@
+{
+  "success": true,
+  "message": "Data ringkasan dashboard berhasil dimuat",
+  "buku": {
+    "fisik": 1250,
+    "digital": 450
+  },
+  "anggotaAktif": 380,
+  "bukuDipinjam": 65,
+  "jatuhTempo": 12
+}

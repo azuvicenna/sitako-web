@@ -1,0 +1,37 @@
+{
+  "success": true,
+  "message": "Data dashboard anggota berhasil dimuat",
+  "statistik": {
+    "bukuDipinjam": 2,
+    "totalDenda": 5000,
+    "totalBookmark": 4
+  },
+  "transaksiAktif": [
+    {
+      "id": "mem-tx-01",
+      "kdTransaksi": "TRX-20260910-001",
+      "judulBuku": "Laskar Pelangi",
+      "tglPinjam": "2026-09-10",
+      "tglKembali": "2026-09-17",
+      "status": "Dipinjam"
+    }
+  ],
+  "tagihanDenda": [
+    {
+      "transaksiId": "mem-tx-02",
+      "judulBuku": "Bumi Manusia",
+      "keterlambatanHari": 5,
+      "totalDenda": 5000,
+      "checkoutUrl": null
+    }
+  ],
+  "bookmarkTerbaru": [
+    {
+      "id": "bm-01",
+      "bukuId": "bk-02",
+      "judulBuku": "Clean Code",
+      "penulis": "Robert C. Martin",
+      "cover": null
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "success": true,
+  "message": "Daftar bookmark berhasil dimuat",
+  "data": [
+    {
+      "id": "bm-01",
+      "createdAt": "2026-09-10T10:00:00.000Z",
+      "buku": {
+        "id": "bk-02",
+        "judul": "Clean Code",
+        "penulis": "Robert C. Martin",
+        "cover": null,
+        "tipeBuku": "Digital",
+        "genre": ["Teknologi", "Pemrograman"]
+      }
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 12,
+    "totalItems": 1,
+    "totalPages": 1,
+    "hasNext": false,
+    "hasPrev": false
+  }
+}

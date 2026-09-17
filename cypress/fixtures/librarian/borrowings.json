@@ -1,0 +1,28 @@
+{
+  "success": true,
+  "message": "Daftar peminjaman berhasil dimuat",
+  "data": [
+    {
+      "id": "tx-01",
+      "kdTransaksi": "TRX-20260901-001",
+      "bukuId": "bk-01",
+      "pustakawanId": "lib-001",
+      "anggotaId": "mem-001",
+      "tglPinjam": "2026-09-01",
+      "tglKembali": "2026-09-08",
+      "status": "Dipinjam",
+      "namaAnggota": "Budi Santoso",
+      "namaPustakawan": "Siti Rahma",
+      "judulBuku": "Laskar Pelangi",
+      "createdAt": "2026-09-01T08:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "totalRows": 1,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPrevPage": false
+  }
+}

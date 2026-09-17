@@ -1,0 +1,24 @@
+{
+  "success": true,
+  "message": "Daftar pustakawan berhasil dimuat",
+  "data": [
+    {
+      "id": "lib-001",
+      "nama": "Siti Rahma, S.Ptk",
+      "email": "siti.rahma@sitako.sch.id",
+      "telepon": "081234567890",
+      "nip": "198501012010012001",
+      "foto": null,
+      "status_aktif": true,
+      "createdAt": "2025-01-01T08:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "totalRows": 1,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPrevPage": false
+  }
+}

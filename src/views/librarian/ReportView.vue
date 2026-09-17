@@ -363,19 +363,19 @@ const getPaymentBadge = (status: string): { label: string; variant: BadgeVariant
     </div>
 
     <!-- TAB SWITCHER -->
-    <div class="flex border-b border-gray-200">
+    <div class="flex border-b border-gray-200 overflow-x-auto whitespace-nowrap scrollbar-none">
       <button
         type="button"
         @click="handleTabSwitch('circulation')"
         :class="[
-          'flex items-center gap-2 py-3 px-6 font-semibold text-sm border-b-2 transition-colors duration-150 cursor-pointer',
+          'flex items-center gap-2 py-3 px-4 sm:px-6 font-semibold text-xs sm:text-sm border-b-2 transition-colors duration-150 cursor-pointer shrink-0',
           activeTab === 'circulation'
             ? 'border-mustard text-charcoal'
             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
         ]"
       >
-        <BookOpenIcon class="w-5 h-5" />
-        Laporan Sirkulasi Peminjaman
+        <BookOpenIcon class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+        <span>Laporan Sirkulasi Peminjaman</span>
         <span
           class="ml-1 px-2 py-0.5 text-xs rounded-full bg-amber-100 text-amber-800 font-semibold"
         >
@@ -387,14 +387,14 @@ const getPaymentBadge = (status: string): { label: string; variant: BadgeVariant
         type="button"
         @click="handleTabSwitch('fines')"
         :class="[
-          'flex items-center gap-2 py-3 px-6 font-semibold text-sm border-b-2 transition-colors duration-150 cursor-pointer',
+          'flex items-center gap-2 py-3 px-4 sm:px-6 font-semibold text-xs sm:text-sm border-b-2 transition-colors duration-150 cursor-pointer shrink-0',
           activeTab === 'fines'
             ? 'border-mustard text-charcoal'
             : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
         ]"
       >
-        <BanknotesIcon class="w-5 h-5" />
-        Laporan Pembayaran Denda
+        <BanknotesIcon class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+        <span>Laporan Pembayaran Denda</span>
         <span
           class="ml-1 px-2 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-800 font-semibold"
         >
