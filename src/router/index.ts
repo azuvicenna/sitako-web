@@ -19,10 +19,14 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: () => {
+      name: 'landing',
+      component: () => import('@/views/Index.vue'),
+      meta: { title: 'Beranda' },
+      beforeEnter: (to, from) => {
         const authStore = useAuthStore();
-        if (authStore.role === 'Anggota') return '/anggota/dashboard';
-        return '/pustakawan/dashboard';
+        if (authStore.isAuthenticated && authStore.role) {
+          return authStore.role === 'Anggota' ? '/anggota/dashboard' : '/pustakawan/dashboard';
+        }
       },
     },
     {

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### [2026-09-18]
+
+#### Added
+
+- Menambahkan halaman landing page (`src/views/Index.vue`) berbasis TypeScript dan Tailwind CSS responsif
+- Menambahkan modul data informasi landing page di `src/data/landing.ts` (layanan, fasilitas, panduan, jadwal operasional, kontak)
+- Menambahkan rute `/` ke landing page dengan pengawal navigasi role-based redirect bagi pengguna yang sudah login
+- Menambahkan unit test untuk pengalihan dan akses rute landing page pada pengunjung tamu / belum login
+
 ### [2026-09-17]
 
 #### Added

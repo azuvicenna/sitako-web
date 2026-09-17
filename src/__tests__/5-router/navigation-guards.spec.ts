@@ -166,6 +166,16 @@ describe('Router Navigation Guards (Layer 5)', () => {
     expect(router.currentRoute.value.path).toBe('/pustakawan/dashboard');
   });
 
+  it('allows unauthenticated guest to access root landing page /', async () => {
+    const authStore = useAuthStore();
+    authStore.isInitialized = true;
+    authStore.clearUser();
+
+    await router.push('/');
+    expect(router.currentRoute.value.path).toBe('/');
+    expect(router.currentRoute.value.name).toBe('landing');
+  });
+
   it('redirects /profil route based on active user role', async () => {
     const authStore = useAuthStore();
     authStore.isInitialized = true;
