@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: sitako-web:latest
     container_name: sitako-web
     restart: unless-stopped
     ports:

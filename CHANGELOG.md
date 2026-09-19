@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### [2026-09-19]
+
+#### Added
+- Menambahkan konfigurasi dan dokumentasi deployment Minikube di `README.md` dengan opsi Ingress NGINX
+
+#### Changed
+- Mengoptimalkan `nginx.conf` dengan Docker DNS resolver (`resolver 127.0.0.11`) dan dynamic proxy upstream agar frontend dapat berjalan mandiri (standalone) tanpa crash saat backend belum aktif
+- Menambahkan tag `image: sitako-web:latest` di `docker-compose.yml`
+- Memusatkan panduan k8s ke `README.md` utama dan menghapus `k8s/README.md`
+
 ### [2026-09-18]
 
 #### Added

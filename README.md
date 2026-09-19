@@ -41,7 +41,7 @@ Berikut adalah teknologi inti yang digunakan pada proyek frontend ini beserta fu
 - **Cypress**: Framework *End-to-End* (E2E) testing untuk simulasi pengujian otomatis alur interaksi pengguna nyata di browser.
 - **Oxlint & ESLint & Prettier**: Toolchain kualitas kode modern yang menggabungkan linter berbasis Rust super cepat (Oxlint), ESLint dengan aturan Vue/TypeScript, serta Prettier untuk pemformatan kode otomatis.
 - **Docker & Nginx**: Multi-stage Docker container yang mengkompilasi aset Vue 3 dan menyajikannya lewat Nginx 1.27 Alpine berkinerja tinggi dengan kompresi Gzip, caching aset statis, dan fallback routing SPA.
-- **Kubernetes (K3s)**: Konfigurasi orkestrasi container menggunakan Kubernetes Deployment, Service (ClusterIP), dan Traefik Ingress terpadu berdampingan dengan SITAKO Server.
+- **Kubernetes (Minikube & K3s)**: Konfigurasi orkestrasi container menggunakan Kubernetes Deployment, Service (ClusterIP), dan Ingress terpadu (NGINX Ingress di Minikube atau Traefik di K3s) berdampingan dengan SITAKO Server.
 - **Progressive Web App (PWA) & Workbox**: Dukungan instalasi langsung (*installable*) di perangkat seluler dan desktop, Service Worker otomatis (`sw.js`), precaching aset statis dengan Workbox, dan pembaruan aplikasi instan (*auto-update*).
 
 ---
@@ -251,37 +251,91 @@ Endpoint pemeriksaan kesehatan container: **`http://localhost:3000/health`**.
 
 ---
 
-### Deployment ke Kubernetes (K3s)
+### Deployment ke Kubernetes (Minikube & K3s)
 
-Folder `k8s/` menyediakan manifest untuk menjalankan frontend berdampingan dengan backend di dalam cluster Kubernetes (seperti K3s pada VM Multipass):
+Folder `k8s/` menyediakan manifest Kubernetes untuk menjalankan frontend berdampingan dengan backend SITAKO dalam satu cluster:
+- `k8s/01-web.yaml` : Deployment dan Service (ClusterIP port 80) untuk frontend `sitako-web`.
+- `k8s/02-ingress.yaml` : Unified Ingress controller (Path `/` ke frontend, `/api` ke backend). *Default aktif saat ini: K3s (Traefik). Tersedia opsi Minikube (NGINX Ingress).*
 
-1. **Build Docker Image & Simpan ke File `.tar`:**
+---
+
+#### 1. Panduan Deployment ke Minikube (Lokal di Laptop)
+
+> **Catatan Beralih ke Minikube:** Jika ingin menjalankan di Minikube, ubah terlebih dahulu:
+> 1. Di `k8s/02-ingress.yaml`: Komentari `ingressClassName: traefik` & anotasi Traefik, lalu uncomment `ingressClassName: nginx`.
+> 2. Di backend (`sitako/k8s/`): Ubah `storageClassName` di `01-postgres.yaml` dan `02-redis.yaml` menjadi `standard`.
+
+Gunakan perintah-perintah berikut untuk menjalankan seluruh stack di laptop via Minikube:
+
+##### A. Jalankan Minikube & Aktifkan Addon Ingress
+```powershell
+# Jalankan cluster Minikube (disarankan 2 CPU & 4GB RAM)
+minikube start --cpus 2 --memory 4096
+
+# Aktifkan addon NGINX Ingress Controller bawaan Minikube
+minikube addons enable ingress
+```
+
+##### B. Build & Load Docker Image ke Minikube
+```powershell
+# 1. Build dan load image backend (dari direktori sitako)
+docker build -t sitako-server:latest .
+minikube image load sitako-server:latest
+
+# 2. Build dan load image frontend (dari direktori sitako-web)
+docker build -t sitako-web:latest .
+minikube image load sitako-web:latest
+```
+
+##### C. Terapkan Manifest Kubernetes
+```powershell
+# 1. Terapkan backend (namespace, config, database, redis, app)
+kubectl apply -f k8s/00-namespace-and-config.yaml
+kubectl apply -f k8s/01-postgres.yaml
+kubectl apply -f k8s/02-redis.yaml
+kubectl apply -f k8s/03-app.yaml
+
+# 2. Terapkan frontend & Ingress terpadu
+kubectl apply -f k8s/01-web.yaml
+kubectl apply -f k8s/02-ingress.yaml
+```
+
+##### D. Periksa Status Pod, Service, & Ingress
+```powershell
+kubectl get pods -n sitako
+kubectl get svc -n sitako
+kubectl get ingress -n sitako
+```
+
+##### E. Akses Aplikasi di Browser (Khusus Windows)
+Buka satu terminal PowerShell baru dengan hak administrator dan biarkan tetap berjalan:
+```powershell
+minikube tunnel
+```
+Setelah tunnel aktif, buka browser Anda di:
+- **`http://localhost/`** $\rightarrow$ Frontend SITAKO Web
+- **`http://localhost/api`** $\rightarrow$ Backend API SITAKO
+
+---
+
+#### 2. Panduan Deployment ke K3s (VM / Multipass / Server)
+
+*Catatan: Konfigurasi manifest saat ini sudah diset aktif untuk K3s secara default.*
+
+1. **Build Docker Image & Ekspor ke File `.tar`:**
    ```bash
    docker build -t sitako-web:latest .
    docker save sitako-web:latest -o sitako-web.tar
    ```
-
-2. **Transfer & Import Image ke Runtime Containerd K3s:**
+3. **Transfer & Import ke K3s Containerd (Multipass VM):**
    ```bash
    multipass transfer sitako-web.tar sitako-vm:/home/ubuntu/sitako-web.tar
    multipass exec sitako-vm -- sudo k3s ctr -n k8s.io images import /home/ubuntu/sitako-web.tar
    multipass exec sitako-vm -- rm /home/ubuntu/sitako-web.tar
    ```
-
-3. **Terapkan Manifest Kubernetes:**
-   *(Pastikan namespace `sitako` dan backend SITAKO sudah aktif)*
+4. **Terapkan Manifest & Akses:**
    ```bash
    kubectl apply -f k8s/01-web.yaml
    kubectl apply -f k8s/02-ingress.yaml
    ```
-
-4. **Verifikasi Status Pod & Ingress:**
-   ```bash
-   kubectl get pods -n sitako -l app=sitako-web
-   kubectl get svc -n sitako
-   kubectl get ingress -n sitako
-   ```
-
-5. **Akses Aplikasi Melalui Ingress Traefik:**
-   - `http://<IP-VM>/` $\rightarrow$ Mengakses Frontend SITAKO Web
-   - `http://<IP-VM>/api/...` $\rightarrow$ Diteruskan ke Backend API SITAKO
+   Buka `http://<IP-VM>/` di browser.
